@@ -1,0 +1,269 @@
+
+$primary-color:#3611A0;
+$secondary-color: #d69db6;
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+.App {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+main {
+ padding: 30px;
+}
+.p-sidebar-left .p-sidebar{
+   width: 16rem !important;
+}
+.Navbar{
+  height: 5rem !important;
+  
+}
+.p-panelmenu .p-panelmenu-header .p-panelmenu-header-content .p-panelmenu-header-link{
+color: black;
+}
+.login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #dadada;
+    height: 40rem;
+    width: 30rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    background-color: #fff;
+  }
+  
+ .login-form-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin-bottom: 10px;
+    background-color: white;
+  }
+  
+  
+  
+  .login-form {
+    width: 300px;
+    margin-top: 20px;
+  }
+  
+  .p-inputgroup {
+    margin-bottom: 15px;
+  }
+  
+  .p-inputgroup-addon {
+    background-color: $primary-color;
+    color: #595555;
+    border: 1px solid $primary-color;
+  }
+  
+  .p-inputtext {
+    width: 100%;
+  }
+ 
+  // 
+  .login-btn {
+    color: #595555;
+    background: $primary-color;
+    border: 1px solid $primary-color;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    border-radius: 3px;
+}
+
+/* .p-menubar {
+    background-color: $primary-color;
+    color: #595555  !important;
+} */
+.menu-btn {
+    color: #595555;
+    background: $primary-color;
+    border: 1px solid $primary-color;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    border-radius: 3px;
+}
+.edit-btn{
+  background-color: transparent;
+    color: #a6d5fa;
+    border-color: transparent;
+}
+.add-btn {
+    color: #ffffff;
+    background: $secondary-color;
+    border: 1px solid $secondary-color;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    border-radius: 3px;
+}
+.add-btn:hover {
+    background-color: rgba($secondary-color, 90%);
+    color: #ffffff;
+    border-color: rgba($secondary-color, 90%);
+}
+.add-btn:focus {
+    outline: 0 none;
+    outline-offset: 0;
+    box-shadow: 0 0 0 0.2rem rgba($secondary-color, 90%);
+}
+.cancel-btn {
+    color: #ffffff;
+    background: #c4c7c9;
+    border: 1px solid #c4c7c9;
+}
+.save-btn {
+    color: #595555;
+    background: $primary-color;
+    border: 1px solid $primary-color;
+}
+.save-btn:hover {
+    background-color: rgba($primary-color, 90%);
+    color: #595555;
+    border-color: rgba($primary-color, 90%);
+}
+
+.p-rating .p-rating-item.p-rating-item-active .p-rating-icon {
+    color: $secondary-color;
+}
+
+.p-button-edit {
+    color: #b7ceda;
+     background: white ;
+     border: 2px solid $primary-color; 
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    border-radius: 50%;
+}
+.p-button-delete {
+    color: red;
+     background: white; 
+     border: 1px solid red; 
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    border-radius: 50%;
+}
+.p-menu .p-menuitem:not(.p-highlight):not(.p-disabled) > .p-menuitem-content:hover {
+    color: #495057;
+    background: #e3f2fd;
+}
+.p-menu .p-menuitem:not(.p-highlight):not(.p-disabled).p-focus > .p-menuitem-content {
+    color: #495057;
+    background: #e3f2fd;
+}
+.card {
+    background: var(--surface-card);
+   //padding: 2rem;
+    border-radius: 10px;
+   
+}
+.p-menubar-start{
+  margin-right: auto;
+  margin-left: 20px;
+}
+.edit-btn{
+  background-color: transparent;
+    color: #a6d5fa;
+    border-color: #a6d5fa;
+}
+.edit-btn:hover{
+  background-color: rgb(245, 244, 254, 10%);
+    color: #a6d5fa;
+    border-color: #a6d5fa;
+}
+.edit-btn:focus{
+  outline: 0 none;
+    outline-offset: 0;
+    box-shadow: 0 0 0 0.2rem rgb(245, 244, 254, 10%);
+}
+.delete-btn{
+  background-color: transparent;
+    color: red;
+    border-color: red;
+}
+/* PrimeReact Custom Styles */
+.custom-steps .p-steps .p-steps-item.p-highlight .p-steps-title {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.custom-steps .p-steps .p-steps-item .p-steps-number {
+  background-color: #e5e7eb;
+  border-color: #e5e7eb;
+  color: #6b7280;
+}
+
+.custom-steps .p-steps .p-steps-item .p-steps-title {
+  color: #9ca3af;
+}
+
+/* Custom dropdown styles */
+.p-dropdown {
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+}
+
+.p-dropdown:not(.p-disabled).p-focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 1px #60a5fa;
+}
+
+/* Custom calendar styles */
+.p-calendar .p-inputtext {
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+}
+
+.p-calendar .p-inputtext:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 1px #60a5fa;
+}
+
+/* Custom radio button styles */
+.p-radiobutton .p-radiobutton-box.p-highlight {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
+
+/* Dialog header customization */
+.p-dialog .p-dialog-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.p-dialog .p-dialog-content {
+  padding: 0;
+}
+.predict-tag{
+  font-weight: 600;
+  border-radius: 5px;
+  padding: 0.5em 1em;
+  text-transform: capitalize;
+  font-size: 0.9em;
+  width: 100%;
+}
+.warning-tag{
+  background-color: #FFF7E6 !important;
+  color: #FA8C16 !important;
+  border: 1px solid #FA8C16 !important  ;
+}
+.info-tag{
+  background-color: #F0F5FF !important;
+  color: #1677FF !important;
+  border: 1px solid #b6caf3 !important  ;
+}
+.success-tag{
+  background-color: #F6FFED !important;
+  color: #B7EB8F !important;
+  border: 1px solid #B7EB8F !important  ;
+}
