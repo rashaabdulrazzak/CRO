@@ -317,7 +317,7 @@ const Roles: React.FC = () => {
         draggable={false}
         onHide={hideDialog}
       >
-        <div className="p-fluid grid formgrid">
+        <div className="p-fluid grid formgrid p-4">
           <div className="field col-12">
             <label htmlFor="roleName">Role Name</label>
             <InputText
@@ -387,7 +387,7 @@ const Roles: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex justify-end gap-2 mt-2">
+        <div className="flex justify-end gap-2 mt-2 p-4">
           <Button
             label="Save"
             icon="pi pi-check"
