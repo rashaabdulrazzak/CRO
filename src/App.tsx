@@ -9,15 +9,20 @@ import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 
 // Layout utilities (spacing, grid, .field, .p-fluid, etc.)
-import 'primeflex/primeflex.css'
+// import 'primeflex/primeflex.css'
+import { AuthProvider } from './components/AuthContext';
 function App() {
      return (
+
     <div className="App">
-      <BrowserRouter>
+       <AuthProvider>
+        <BrowserRouter>
       <PrimeReactProvider>
       <LayoutComponent/>
       </PrimeReactProvider>
       </BrowserRouter>
+       </AuthProvider>
+     
     </div>
      )
 }

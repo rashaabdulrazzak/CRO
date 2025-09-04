@@ -267,3 +267,17 @@ color: black;
   color: #B7EB8F !important;
   border: 1px solid #B7EB8F !important  ;
 }
+/* .p-button {
+    color: #ffffff;
+    background: $primary-color;
+    border: 1px solid $primary-color;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    border-radius: 3px;
+} */
+ .p-button.p-button-secondary{
+    color: white;
+    background: $primary-color;
+    border: 1px solid $primary-color;
+ }

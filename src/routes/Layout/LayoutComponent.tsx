@@ -8,10 +8,13 @@ import Reviews from '../../pages/Reviews';
 import Users from '../../pages/Users';
 import Downloads from '../../pages/Downloads';
 import Canvases from '../../pages/Canvases';
-import Payments from '../../pages/PredictData';
+//import Payments from '../../pages/PredictData';
 import Login from '../../pages/Login';
 import Roles from '../../pages/Roles';
 import PredictData from '../../pages/PredictData';
+import PatientEntry from '../../pages/PatientEntry';
+import ImageEvaluation from '../../pages/ImageEvaluation';
+import ImageAssessment from '../../pages/ImageAssesment';
 
 const LayoutComponent = () => {
   const location = useLocation()
@@ -30,6 +33,9 @@ const LayoutComponent = () => {
         <Route path="/downloads" element={<Downloads />}></Route>
         <Route path="/trialcases" element={<PredictData />}></Route>
         <Route path="/roles" element={<Roles />}></Route>
+        <Route path="/patientEntry" element={<PatientEntry />}></Route>
+        <Route path="/imageEvaluation" element={<ImageEvaluation />}></Route>
+        <Route path="/imageAssessment" element={<ImageAssessment />}></Route>
 
       </Routes>
       </main>

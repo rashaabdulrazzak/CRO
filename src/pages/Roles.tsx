@@ -25,12 +25,13 @@ const statusOptions = [
   { label: "Active", value: "Active" },
   { label: "Inactive", value: "Inactive" },
 ];
-
+// Roles 
+// { "Monitor","Biostatistician","Site coordinator","Hekim","Physician","Patolog Hekim"}
 // ===== Dummy Data (5 roles) =====
 const defaultRoles: Role[] = [
   {
     id: 1,
-    roleName: "Admin",
+    roleName: "Monitor",
     status: "Active",
     createdBy: "system",
     createdOn: "2023-05-01T10:15:00Z",
@@ -39,7 +40,7 @@ const defaultRoles: Role[] = [
   },
   {
     id: 2,
-    roleName: "User",
+    roleName: "Biostatistician",
     status: "Active",
     createdBy: "Alice",
     createdOn: "2023-06-10T12:30:00Z",
@@ -48,7 +49,7 @@ const defaultRoles: Role[] = [
   },
   {
     id: 3,
-    roleName: "Developer",
+    roleName: "Site coordinator",
     status: "Inactive",
     createdBy: "Bob",
     createdOn: "2023-07-20T09:00:00Z",
@@ -57,7 +58,7 @@ const defaultRoles: Role[] = [
   },
   {
     id: 4,
-    roleName: "Tester",
+    roleName: "Hekim",
     status: "Active",
     createdBy: "Charlie",
     createdOn: "2023-08-05T16:10:00Z",
@@ -66,7 +67,16 @@ const defaultRoles: Role[] = [
   },
   {
     id: 5,
-    roleName: "Guest",
+    roleName: "Physician",
+    status: "Active",
+    createdBy: "Diana",
+    createdOn: "2023-09-01T08:00:00Z",
+    modifiedBy: "Ethan",
+    modifiedOn: "2023-09-03T13:40:00Z",
+  },
+  {
+    id: 6,
+    roleName: "Patolog Hekim",
     status: "Active",
     createdBy: "Diana",
     createdOn: "2023-09-01T08:00:00Z",

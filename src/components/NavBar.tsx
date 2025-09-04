@@ -37,7 +37,7 @@ const navigate = useNavigate()
         },
         {
             label: 'Image Assessment',
-            
+            command:()=>navigate('/imageAssessment')
         },
         {
             label: 'Pathology of Cases',
@@ -56,6 +56,16 @@ const navigate = useNavigate()
         {
             label: 'Roles',
             command:() => navigate('/roles')
+            
+        },
+        {
+            label: 'Entry',
+            command:() => navigate('/patientEntry')
+            
+        },
+        {
+            label: 'evaluation',
+            command:() => navigate('/imageEvaluation')
             
         },
     ];
