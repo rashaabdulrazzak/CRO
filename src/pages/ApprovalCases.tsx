@@ -404,7 +404,7 @@ const clearFilters = () => {
        <Column
   header="Actions"
   body={(rowData) => (
-    <Button label="Action" text onClick={() => openAction(rowData)} />
+    <Button label="Confirm" text onClick={() => openAction(rowData)} />
   )}
   style={{ minWidth: "8rem" }}
 />

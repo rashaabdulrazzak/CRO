@@ -108,11 +108,11 @@ export default function ActionDialog({
       contentClassName="p-6"
       footer={
         <div className="flex justify-end gap-2">
-          <Button label="Cancel" className="p-button-secondary" onClick={onCancel} />
+          <Button label="Cancel" className="p-button-outlined" onClick={onCancel} />
           <Button
             label="Submit"
             icon="pi pi-check"
-            className="p-button-success"
+            className="p-button-secondary"
             onClick={handleSubmit}
             disabled={!canSubmit}
           />
@@ -209,11 +209,12 @@ export default function ActionDialog({
       </div>
 
       {/* Divider */}
-      <div className="border-t my-5" />
-
+      <div className="border-t my-5"  />
+ <h3 className="text-base m-2">Araştırmacının Onayı (Confirmation of the Researcher):</h3>
       {/* Username */}
-      <div className="flex items-center gap-3 mb-4">
-        <label htmlFor="action-username" className="text-sm whitespace-nowrap">Username:</label>
+      <div className="flex items-center gap-3 mx-2 mb-4" >
+       
+        <label htmlFor="action-username" className="text-sm whitespace-nowrap">Araştırmacı Adı (Researcher Name):</label>
         <InputText
           id="action-username"
           placeholder="Enter your name"
@@ -224,9 +225,9 @@ export default function ActionDialog({
       </div>
 
       {/* Is Approved */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 mx-2 ">
        
-        <label htmlFor="isApproved" className="text-sm">Is Approved</label>
+        <label htmlFor="isApproved" className="text-sm">Vaka tamamlanmıştır. (Case is completed):</label>
          <Checkbox
           inputId="isApproved"
           checked={isApproved}
