@@ -6,6 +6,7 @@ import { useRef,  } from "react";
 import { useNavigate } from "react-router-dom";
 
 import logo from '../assets/triacklogo.png'
+import { Menu } from "primereact/menu";
 const NavBar = () =>{
  // eslint-disable-next-line @typescript-eslint/no-explicit-any
  const menuLeft = useRef<any>(null);
@@ -32,7 +33,8 @@ const navigate = useNavigate()
       const menuItems = [
         {
             label: 'Trial Cases',
-            command:()=>navigate('/trialcases')
+            command:()=>navigate('/trialcases'),
+             roles: ['field_coordinator']
            
         },
         {
@@ -45,7 +47,7 @@ const navigate = useNavigate()
         },
         {
             label: ' Approval of Cases',
-            command:() => navigate('/roles')
+            command:() => navigate('/approvalCases')
             
         },
         {
@@ -96,7 +98,7 @@ const end = (
 
     return (
         <div className="card ">
-           {/*  <Menu model={items} popup ref={menuLeft} id="popup_menu_left" /> */}
+            <Menu model={items} popup ref={menuLeft} id="popup_menu_left" /> 
             <Menubar className="Navbar px-3 py-1.5" model={menuItems} start={start} end={end}  />
             
         </div>

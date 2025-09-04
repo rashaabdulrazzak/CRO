@@ -19,11 +19,11 @@ interface AuthContextType {
 
 // Mock users for demonstration
 const mockUsers = [
-  { id: '1', username: 'coordinator1', password: 'pass123', role: 'field_coordinator' as const },
-  { id: '2', username: 'radiologist1', password: 'pass123', role: 'radiologist' as const },
-  { id: '3', username: 'radiologist2', password: 'pass123', role: 'radiologist' as const },
-  { id: '4', username: 'radiologist3', password: 'pass123', role: 'radiologist' as const },
-  { id: '5', username: 'monitor1', password: 'pass123', role: 'monitor' as const },
+  { id: '1', username: 'coordinator1', password: 'Pass123!', email:"coordinator1@test.com",role: 'field_coordinator' as const },
+  { id: '2', username: 'radiologist1', password: 'Pass123!', role: 'radiologist' as const },
+  { id: '3', username: 'radiologist2', password: 'Pass123!', role: 'radiologist' as const },
+  { id: '4', username: 'radiologist3', password: 'Pass123!', role: 'radiologist' as const },
+  { id: '5', username: 'monitor1', password: 'Pass123!', role: 'monitor' as const },
 ];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

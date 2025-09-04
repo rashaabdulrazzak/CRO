@@ -8,6 +8,7 @@ import { Button } from "primereact/button";
 import { IconField } from 'primereact/iconfield';
 import { InputIcon } from 'primereact/inputicon';
 import { AddRoleDialog } from "../components/addRoleDialog";
+import { Tag } from "primereact/tag";
 
 // ===== Types =====
 export type Role = {
@@ -25,6 +26,32 @@ const statusOptions = [
   { label: "Active", value: "Active" },
   { label: "Inactive", value: "Inactive" },
 ];
+  const getSeverity = (status: string) => {
+    switch (status) {
+      case "Inactive":
+        return "warning";
+
+      case "Active":
+        return "success";
+    }
+  };
+  const getTagClass = (status: string) => {
+    switch (status) {
+      case "Inactive":
+        return "warning-tag";
+      case "Active":
+        return "success-tag";
+    }
+  };
+  const statusBodyTemplate = (rowData: Role) => {
+    return (
+      <Tag
+        className={`predict-tag ${getTagClass(rowData.status)}`}
+        value={rowData.status}
+        severity={getSeverity(rowData.status)}
+      />
+    );
+  };
 // Roles 
 // { "Monitor","Biostatistician","Site coordinator","Hekim","Physician","Patolog Hekim"}
 // ===== Dummy Data (5 roles) =====
@@ -270,7 +297,7 @@ const Roles: React.FC = () => {
       >
         <Column field="id" header="ID" sortable style={{ width: "80px" }} />
         <Column field="roleName" header="Role Name" sortable />
-        <Column field="status" header="Status" sortable />
+        <Column field="status" header="Status" body={statusBodyTemplate} sortable />
         <Column header="Created On" body={createdOnBody} sortable />
         <Column field="createdBy" header="Created By" sortable />
         <Column header="Modified On" body={modifiedOnBody} sortable />

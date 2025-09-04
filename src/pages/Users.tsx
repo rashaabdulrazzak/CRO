@@ -5,8 +5,8 @@ import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { Dialog } from "primereact/dialog";
 import { Button } from "primereact/button";
-import { IconField } from 'primereact/iconfield';
-import { InputIcon } from 'primereact/inputicon';
+import { IconField } from "primereact/iconfield";
+import { InputIcon } from "primereact/inputicon";
 import { Tag } from "primereact/tag";
 // ===== Types =====
 export type User = {
@@ -105,7 +105,8 @@ const defaultUsers: User[] = [
 ];
 
 // ===== Utilities =====
-const coalesceId = (arr: User[]) => (arr.length ? Math.max(...arr.map((u) => u.id)) + 1 : 1);
+const coalesceId = (arr: User[]) =>
+  arr.length ? Math.max(...arr.map((u) => u.id)) + 1 : 1;
 const nowIso = () => new Date().toISOString().slice(0, 19) + "Z";
 
 // ===== Component =====
@@ -167,26 +168,32 @@ const Users: React.FC = () => {
 
   const currentPage = Math.max(1, Math.floor(first / rows) + 1);
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / rows));
-  const getSeverity = (status:string) => {
-        switch (status) {
-            case 'Passive':
-                return 'warning';
-
-            case 'Active':
-                return 'success';
-        }
-    };
-    const getTagClass = (status: string) => {
+  const getSeverity = (status: string) => {
     switch (status) {
-        case 'Passive':
-            return 'warning-tag';
-        case 'Active':
-            return 'success-tag';
+      case "Passive":
+        return "warning";
+
+      case "Active":
+        return "success";
     }
-};
-      const statusBodyTemplate = (rowData:User) => {
-        return <Tag className={`predict-tag ${getTagClass(rowData.status)}`} value={rowData.status} severity={getSeverity(rowData.status)} />;
-    };
+  };
+  const getTagClass = (status: string) => {
+    switch (status) {
+      case "Passive":
+        return "warning-tag";
+      case "Active":
+        return "success-tag";
+    }
+  };
+  const statusBodyTemplate = (rowData: User) => {
+    return (
+      <Tag
+        className={`predict-tag ${getTagClass(rowData.status)}`}
+        value={rowData.status}
+        severity={getSeverity(rowData.status)}
+      />
+    );
+  };
   const openNew = () => {
     setEditingUser({
       id: coalesceId(users),
@@ -256,16 +263,28 @@ const Users: React.FC = () => {
       {/* Title + Add */}
       <div className="flex justify-between items-center mb-3">
         <h2 className="text-2xl font-bold">Users</h2>
-        <Button label="Add User" className="add-btn" icon="pi pi-plus" onClick={openNew} />
+        <Button
+          label="Add User"
+          className="add-btn"
+          icon="pi pi-plus"
+          onClick={openNew}
+        />
       </div>
 
       {/* Search / Filter row (small controls + Clear) */}
-     <div className="flex flex-col md:flex-row gap-3 lg:items-end lg:justify-end justify-center items-initial mb-4">
+      <div className="flex flex-col md:flex-row gap-3 lg:items-end lg:justify-end justify-center items-initial mb-4">
         <IconField iconPosition="left">
-                <InputIcon className="pi pi-search" />
-                 <InputText type="search" placeholder="Search..." onInput={(e) => {const target = e.target as HTMLInputElement; setGlobalFilter(target.value);}}  />
+          <InputIcon className="pi pi-search" />
+          <InputText
+            type="search"
+            placeholder="Search..."
+            onInput={(e) => {
+              const target = e.target as HTMLInputElement;
+              setGlobalFilter(target.value);
+            }}
+          />
         </IconField>
-     
+
         <Button
           label="Clear"
           icon="pi pi-filter-slash"
@@ -284,11 +303,22 @@ const Users: React.FC = () => {
         onPage={onPage}
         rowsPerPageOptions={[5, 10, 20, 50]}
         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown"
-        paginatorLeft={<span className="text-sm">Total {filteredUsers.length} items</span>}
-        paginatorRight={<span className="text-sm">{currentPage} of {totalPages} page</span>}
+        paginatorLeft={
+          <span className="text-sm">Total {filteredUsers.length} items</span>
+        }
+        paginatorRight={
+          <span className="text-sm">
+            {currentPage} of {totalPages} page
+          </span>
+        }
         emptyMessage="No users found"
         sortMode="multiple"
-        tableStyle={{ minWidth: "50rem" , maxWidth: "100%", overflowX: "auto" , fontSize: "12px"}}
+        tableStyle={{
+          minWidth: "50rem",
+          maxWidth: "100%",
+          overflowX: "auto",
+          fontSize: "12px",
+        }}
         responsiveLayout="scroll"
       >
         <Column field="id" header="ID" sortable style={{ width: 90 }} />
@@ -301,8 +331,17 @@ const Users: React.FC = () => {
         <Column field="createddate" header="Created Date" sortable />
         <Column field="modifiedby" header="Modified By" sortable />
         <Column field="modifiedon" header="Modified On" sortable />
-         <Column field="status" header="Status" body={statusBodyTemplate} sortable />
-        <Column body={actionBodyTemplate} header="Actions" style={{ width: 150 }} />
+        <Column
+          field="status"
+          header="Status"
+          body={statusBodyTemplate}
+          sortable
+        />
+        <Column
+          body={actionBodyTemplate}
+          header="Actions"
+          style={{ width: 150 }}
+        />
       </DataTable>
 
       {/* Dialog */}
@@ -316,13 +355,15 @@ const Users: React.FC = () => {
         draggable={false}
         onHide={hideDialog}
       >
-        <div className="p-fluid grid formgrid">
+        <div className="p-fluid grid formgrid" style={{ padding: "1rem" }}>
           <div className="field col-12 md:col-6">
             <label htmlFor="name">Name</label>
             <InputText
               id="name"
               value={editingUser?.name || ""}
-              onChange={(e) => setEditingUser((u) => (u ? { ...u, name: e.target.value } : u))}
+              onChange={(e) =>
+                setEditingUser((u) => (u ? { ...u, name: e.target.value } : u))
+              }
             />
           </div>
           <div className="field col-12 md:col-6">
@@ -330,7 +371,11 @@ const Users: React.FC = () => {
             <InputText
               id="surname"
               value={editingUser?.surname || ""}
-              onChange={(e) => setEditingUser((u) => (u ? { ...u, surname: e.target.value } : u))}
+              onChange={(e) =>
+                setEditingUser((u) =>
+                  u ? { ...u, surname: e.target.value } : u
+                )
+              }
             />
           </div>
           <div className="field col-12 md:col-6">
@@ -338,7 +383,9 @@ const Users: React.FC = () => {
             <InputText
               id="email"
               value={editingUser?.email || ""}
-              onChange={(e) => setEditingUser((u) => (u ? { ...u, email: e.target.value } : u))}
+              onChange={(e) =>
+                setEditingUser((u) => (u ? { ...u, email: e.target.value } : u))
+              }
             />
           </div>
           <div className="field col-12 md:col-6">
@@ -346,7 +393,11 @@ const Users: React.FC = () => {
             <InputText
               id="phone"
               value={editingUser?.phoneNumber || ""}
-              onChange={(e) => setEditingUser((u) => (u ? { ...u, phoneNumber: e.target.value } : u))}
+              onChange={(e) =>
+                setEditingUser((u) =>
+                  u ? { ...u, phoneNumber: e.target.value } : u
+                )
+              }
             />
           </div>
 
@@ -356,7 +407,9 @@ const Users: React.FC = () => {
               id="role"
               value={editingUser?.role || "User"}
               options={roleOptions}
-              onChange={(e) => setEditingUser((u) => (u ? { ...u, role: e.value } : u))}
+              onChange={(e) =>
+                setEditingUser((u) => (u ? { ...u, role: e.value } : u))
+              }
               placeholder="Select a Role"
             />
           </div>
@@ -367,7 +420,9 @@ const Users: React.FC = () => {
               id="status"
               value={editingUser?.status || "Active"}
               options={statusOptions}
-              onChange={(e) => setEditingUser((u) => (u ? { ...u, status: e.value } : u))}
+              onChange={(e) =>
+                setEditingUser((u) => (u ? { ...u, status: e.value } : u))
+              }
               placeholder="Select Status"
             />
           </div>
@@ -377,7 +432,11 @@ const Users: React.FC = () => {
             <InputText
               id="createdby"
               value={editingUser?.createdby || ""}
-              onChange={(e) => setEditingUser((u) => (u ? { ...u, createdby: e.target.value } : u))}
+              onChange={(e) =>
+                setEditingUser((u) =>
+                  u ? { ...u, createdby: e.target.value } : u
+                )
+              }
             />
           </div>
           <div className="field col-12 md:col-6">
@@ -386,7 +445,11 @@ const Users: React.FC = () => {
               id="createddate"
               placeholder="YYYY-MM-DDTHH:mm:ssZ"
               value={editingUser?.createddate || ""}
-              onChange={(e) => setEditingUser((u) => (u ? { ...u, createddate: e.target.value } : u))}
+              onChange={(e) =>
+                setEditingUser((u) =>
+                  u ? { ...u, createddate: e.target.value } : u
+                )
+              }
             />
           </div>
 
@@ -395,7 +458,11 @@ const Users: React.FC = () => {
             <InputText
               id="modifiedby"
               value={editingUser?.modifiedby || ""}
-              onChange={(e) => setEditingUser((u) => (u ? { ...u, modifiedby: e.target.value } : u))}
+              onChange={(e) =>
+                setEditingUser((u) =>
+                  u ? { ...u, modifiedby: e.target.value } : u
+                )
+              }
             />
           </div>
           <div className="field col-12 md:col-6">
@@ -404,13 +471,25 @@ const Users: React.FC = () => {
               id="modifiedon"
               placeholder="YYYY-MM-DDTHH:mm:ssZ"
               value={editingUser?.modifiedon || ""}
-              onChange={(e) => setEditingUser((u) => (u ? { ...u, modifiedon: e.target.value } : u))}
+              onChange={(e) =>
+                setEditingUser((u) =>
+                  u ? { ...u, modifiedon: e.target.value } : u
+                )
+              }
             />
           </div>
         </div>
 
-        <div className="flex justify-end gap-2 mt-2">
-          <Button label="Save" icon="pi pi-check" className="p-button-sm save-btn" onClick={saveUser} />
+        <div
+          className="flex justify-end gap-2 mt-2"
+          style={{ padding: "1rem" }}
+        >
+          <Button
+            label="Save"
+            icon="pi pi-check"
+            className="p-button-sm save-btn"
+            onClick={saveUser}
+          />
           <Button
             label="Cancel"
             icon="pi pi-times"

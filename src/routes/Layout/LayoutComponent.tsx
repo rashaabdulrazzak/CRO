@@ -15,6 +15,7 @@ import PredictData from '../../pages/PredictData';
 import PatientEntry from '../../pages/PatientEntry';
 import ImageEvaluation from '../../pages/ImageEvaluation';
 import ImageAssessment from '../../pages/ImageAssesment';
+import ApprovalCases from '../../pages/ApprovalCases';
 
 const LayoutComponent = () => {
   const location = useLocation()
@@ -36,6 +37,7 @@ const LayoutComponent = () => {
         <Route path="/patientEntry" element={<PatientEntry />}></Route>
         <Route path="/imageEvaluation" element={<ImageEvaluation />}></Route>
         <Route path="/imageAssessment" element={<ImageAssessment />}></Route>
+        <Route path="/approvalCases" element={<ApprovalCases />}></Route>
 
       </Routes>
       </main>
