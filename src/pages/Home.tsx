@@ -34,7 +34,7 @@ const initialUserRecord: UserRecord[] = [
     lenght: 170,
     create_date: "2023-01-01",
     modify_date: "2023-01-10",
-    status: "Active",
+    status: "Completed",
   },
   {
     id: "0238",
@@ -226,27 +226,50 @@ const clearFilters = () => {
       />
     </div>
   );
-  const getSeverity = (status:string) => {
-        switch (status) {
-            case 'On Hold':
-                return 'danger';
-
-            case 'Completed':
-                return 'success';
-
-            case 'Active':
-                return 'info';
-
-            case 'Ongoing':
-                return 'warning';
-
-            case 'renewal':
-                return null;
-        }
+   const getSeverity = (status: string) => {
+      switch (status) {
+        case "On Hold":
+          return "danger";
+  
+        case "Completed":
+          return "success";
+  
+        case "Ongoing":
+          return "info";
+  
+        case "in Progress":
+          return "warning";
+  
+        case "renewal":
+          return null;
+      }
     };
-      const statusBodyTemplate = (rowData:UserRecord) => {
-        return <Tag value={rowData.status} severity={getSeverity(rowData.status)} />;
+    const getTagClass = (status: string) => {
+      switch (status) {
+        case "On Hold":
+          return "danger-tag";
+        case "Completed":
+          return "success-tag";
+        case "Ongoing":
+          return "info-tag";
+        case "in Progress":
+          return "warning-tag";
+        case "renewal":
+          return "renewal-tag";
+        default:
+          return "";
+      }
     };
+    const statusBodyTemplate = (rowData: UserRecord) => {
+      return (
+        <Tag
+          className={`predict-tag ${getTagClass(rowData.status)}`}
+          value={rowData.status}
+          severity={getSeverity(rowData.status)}
+        />
+      );
+    };
+
   return (
     <div >
         <div className="my-2">

@@ -267,6 +267,11 @@ color: black;
   color: #B7EB8F !important;
   border: 1px solid #B7EB8F !important  ;
 }
+.danger-tag{
+  background-color: #FFF1F0 !important;
+  color: #FF4D4F !important;
+  border: 1px solid #FF4D4F !important  ;
+}
 /* .p-button {
     color: #ffffff;
     background: $primary-color;
@@ -277,7 +282,7 @@ color: black;
     border-radius: 3px;
 } */
  .p-button.p-button-secondary{
-    color: white;
+    color: white  ;
     background: $primary-color;
     border: 1px solid $primary-color;
  }
