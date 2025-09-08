@@ -317,7 +317,7 @@ const clearFilters = () => {
          <div className="flex flex-col md:flex-row gap-3 lg:items-end lg:justify-end justify-center items-initial mb-4">
             <IconField iconPosition="left">
                     <InputIcon className="pi pi-search" />
-                     <InputText type="search" placeholder="Search..." onInput={(e) => {const target = e.target as HTMLInputElement; }}  />
+                     <InputText type="search" placeholder="Search..." onInput={() => { }}  />
             </IconField>
 <Button label="Export" icon="pi pi-upload" className="p-button-help" onClick={exportExcel} />
    
