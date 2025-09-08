@@ -102,17 +102,17 @@ const initialUserRecord: UserRecord[] = [
 export default function PredictData() {
     const dt = useRef<DataTable<UserRecord[]>>(null); // ref to DataTable
 
-  const [recentUserRecord, setRecentUserRecord] =
-    useState<UserRecord[]>(initialUserRecord);
+  const recentUserRecord = initialUserRecord; // In real app, fetch this from API
+  
     const [selectedUserRecords, setSelectedUserRecords] = useState<UserRecord[]>([]);
 
-const [ageOrder, setAgeOrder] = useState<1 | -1>(1);
-const [dateOrder, setDateOrder] = useState<1 | -1>(1);
+// const [ageOrder, setAgeOrder] = useState<1 | -1>(1);
+// const [dateOrder, setDateOrder] = useState<1 | -1>(1);
   const [dialogVisible, setDialogVisible] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
+//  const [isEdit, setIsEdit] = useState(false);
        const [actionDialogVisible, setActionDialogVisible] = useState(false);
   const [actionTarget, setActionTarget] = useState<UserRecord | null>(null);
-const cards = [
+/* const cards = [
  
   {
     bgHex: "#FCF1F7",
@@ -142,8 +142,8 @@ const cards = [
   },
 ] as const;
 
-
-  
+ */
+/*   
     const sortBy = (field: "age" | "create_date") => {
   setRecentUserRecord(prev => {
     const copy = [...prev];
@@ -166,13 +166,13 @@ const cards = [
 
     return copy;
   });
-};
+}; */
 
 const clearFilters = () => {
   // If you use PrimeReact column filters/sorting, this resets them:
   dt.current?.reset();
 };
-  const [form, setForm] = useState<UserRecord>({
+/*   const [form, setForm] = useState<UserRecord>({
     id: 0,
     name: "",
     age: 0,
@@ -183,11 +183,11 @@ const clearFilters = () => {
     create_date: "",
     modify_date: "",
     status: "",
-  });
+  }); */
 
   // open new record dialog
   const openNew = () => {
-    setForm({
+   /*  setForm({
       id: Date.now(),
       name: "",
       age: 0,
@@ -198,19 +198,19 @@ const clearFilters = () => {
       create_date: new Date().toISOString().split("T")[0],
       modify_date: new Date().toISOString().split("T")[0],
       status: "Active",
-    });
-    setIsEdit(false);
+    }); */
+    //setIsEdit(false);
     setDialogVisible(true);
   };
 
   // edit existing record
-  const openEdit = (UserRecord: UserRecord) => {
+/*   const openEdit = (UserRecord: UserRecord) => {
     setForm(UserRecord);
     setIsEdit(true);
     setDialogVisible(true);
-  };
+  }; */
 
-  const saveUserRecord = () => {
+  /* const saveUserRecord = () => {
     if (isEdit) {
       setRecentUserRecord((prev) =>
         prev.map((a) => (a.id === form.id ? form : a))
@@ -220,16 +220,16 @@ const clearFilters = () => {
     }
     setDialogVisible(false);
   };
-
-  const deleteUserRecord = (UserRecord: UserRecord) => {
+ */
+/*   const deleteUserRecord = (UserRecord: UserRecord) => {
     setRecentUserRecord((prev) => prev.filter((a) => a.id !== UserRecord.id));
-  };
+  }; */
     const exportExcel = () => {
         dt.current?.exportCSV();
     };
 
 
-
+/* 
   const dialogFooter = (
     <div>
       <Button
@@ -245,7 +245,7 @@ const clearFilters = () => {
         className="p-button-sm p-button-secondary"
       />
     </div>
-  );
+  ); */
   const getSeverity = (status:string) => {
         switch (status) {
             case 'On Hold':
@@ -317,7 +317,7 @@ const clearFilters = () => {
          <div className="flex flex-col md:flex-row gap-3 lg:items-end lg:justify-end justify-center items-initial mb-4">
             <IconField iconPosition="left">
                     <InputIcon className="pi pi-search" />
-                     <InputText type="search" placeholder="Search..." onInput={(e) => {const target = e.target as HTMLInputElement; setGlobalFilter(target.value);}}  />
+                     <InputText type="search" placeholder="Search..." onInput={(e) => {const target = e.target as HTMLInputElement; }}  />
             </IconField>
 <Button label="Export" icon="pi pi-upload" className="p-button-help" onClick={exportExcel} />
    

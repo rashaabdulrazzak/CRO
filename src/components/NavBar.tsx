@@ -60,11 +60,11 @@ const navigate = useNavigate()
             command:() => navigate('/roles')
             
         },
-        {
+      /*   {
             label: 'Entry',
             command:() => navigate('/patientEntry')
             
-        },
+        }, */
         {
             label: 'evaluation',
             command:() => navigate('/imageEvaluation')

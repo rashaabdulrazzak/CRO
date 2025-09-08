@@ -204,7 +204,7 @@ export default function ImageEvaluation() {
             </div>
           </div>
         </Card>
-        <MedicalCriteriaForm/>
+   {/*      <MedicalCriteriaForm/> */}
 
         {/* Patient Information */}
         {selectedPatient && (

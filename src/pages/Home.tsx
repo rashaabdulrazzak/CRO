@@ -171,7 +171,7 @@ const clearFilters = () => {
   });
 
   // open new record dialog
-  const openNew = () => {
+/*   const openNew = () => {
     setForm({
       id: Date.now(),
       name: "",
@@ -186,7 +186,7 @@ const clearFilters = () => {
     });
     setIsEdit(false);
     setDialogVisible(true);
-  };
+  }; */
 
   // edit existing record
   const openEdit = (UserRecord: UserRecord) => {
@@ -425,7 +425,7 @@ const clearFilters = () => {
             <InputText
               id="age"
               type="number"
-              value={form.age}
+              value={form.age.toString()}
               onChange={(e) => setForm({ ...form, age: Number(e.target.value) })}
               className="w-full"
             />
@@ -453,7 +453,7 @@ const clearFilters = () => {
             <InputText
               id="weight"
               type="number"
-              value={form.weight}
+              value={form.weight.toString()}
               onChange={(e) =>
                 setForm({ ...form, weight: Number(e.target.value) })
               }
@@ -465,7 +465,7 @@ const clearFilters = () => {
             <InputText
               id="lenght"
               type="number"
-              value={form.lenght}
+             value={form.lenght.toString()}
               onChange={(e) =>
                 setForm({ ...form, lenght: Number(e.target.value) })
               }
