@@ -147,7 +147,8 @@ export default function PatientEntry() {
       setUploadedImages([]);
 
     } catch (error) {
-      toast.error('Failed to save patient data');
+    
+      toast.current?.show({severity:'error', summary: 'Error', detail:'Failed to save patient data', life: 3000});
       console.error('Error saving patient:', error);
     } finally {
       setIsLoading(false);
