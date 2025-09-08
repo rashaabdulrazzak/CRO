@@ -85,6 +85,7 @@ export default function PatientEntry() {
 
       // Create patient images
       const patientImages: PatientImage[] = uploadedImages.map((file, index) => {
+        console.log('Processing file:', file);
         const imageNumber = `${formData.volunteerId}-${String(index + 1).padStart(2, '0')}`;
         return {
           id: `${Date.now()}-${index}`,
