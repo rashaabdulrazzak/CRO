@@ -8,7 +8,6 @@ import Users from '../../pages/Users';
 import Login from '../../pages/Login';
 import Roles from '../../pages/Roles';
 import PredictData from '../../pages/PredictData';
-import PatientEntry from '../../pages/PatientEntry';
 import ImageEvaluation from '../../pages/ImageEvaluation';
 import ImageAssessment from '../../pages/ImageAssesment';
 import ApprovalCases from '../../pages/ApprovalCases';
@@ -27,7 +26,7 @@ const LayoutComponent = () => {
         <Route path="/users" element={<Users />}></Route>
         <Route path="/trialcases" element={<PredictData />}></Route>
         <Route path="/roles" element={<Roles />}></Route>
-        <Route path="/patientEntry" element={<PatientEntry />}></Route>
+        {/* <Route path="/patientEntry" element={<PatientEntry />}></Route> */}
         <Route path="/imageEvaluation" element={<ImageEvaluation />}></Route>
         <Route path="/imageAssessment" element={<ImageAssessment />}></Route>
         <Route path="/approvalCases" element={<ApprovalCases />}></Route>

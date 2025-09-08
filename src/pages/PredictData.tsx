@@ -102,19 +102,18 @@ const initialUserRecord: UserRecord[] = [
 export default function PredictData() {
   const dt = useRef<DataTable<UserRecord[]>>(null); // ref to DataTable
 
-  const [recentUserRecord, setRecentUserRecord] =
-    useState<UserRecord[]>(initialUserRecord);
+  const recentUserRecord=initialUserRecord
   const [selectedUserRecords, setSelectedUserRecords] = useState<UserRecord[]>(
     []
   );
-
+/* 
   const [ageOrder, setAgeOrder] = useState<1 | -1>(1);
-  const [dateOrder, setDateOrder] = useState<1 | -1>(1);
+  const [dateOrder, setDateOrder] = useState<1 | -1>(1); */
   const [dialogVisible, setDialogVisible] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
+//  const [isEdit, setIsEdit] = useState(false);
   const [actionDialogVisible, setActionDialogVisible] = useState(false);
   const [actionTarget, setActionTarget] = useState<UserRecord | null>(null);
-  const cards = [
+ /*  const cards = [
     {
       bgHex: "#FCF1F7",
       icon: "pi pi-calendar",
@@ -141,9 +140,9 @@ export default function PredictData() {
       deltaDirection: "up" as const, // ✅ literal
       accentHex: "#2563EB",
     },
-  ] as const;
+  ] as const; */
 
-  const sortBy = (field: "age" | "create_date") => {
+  /* const sortBy = (field: "age" | "create_date") => {
     setRecentUserRecord((prev) => {
       const copy = [...prev];
       const order = field === "age" ? ageOrder : dateOrder;
@@ -167,13 +166,13 @@ export default function PredictData() {
 
       return copy;
     });
-  };
+  }; */
 
   const clearFilters = () => {
     // If you use PrimeReact column filters/sorting, this resets them:
     dt.current?.reset();
   };
-  const [form, setForm] = useState<UserRecord>({
+/*   const [form, setForm] = useState<UserRecord>({
     id: 0,
     name: "",
     age: 0,
@@ -184,11 +183,11 @@ export default function PredictData() {
     create_date: "",
     modify_date: "",
     status: "",
-  });
+  }); */
 
   // open new record dialog
   const openNew = () => {
-    setForm({
+  /*   setForm({
       id: Date.now(),
       name: "",
       age: 0,
@@ -199,19 +198,19 @@ export default function PredictData() {
       create_date: new Date().toISOString().split("T")[0],
       modify_date: new Date().toISOString().split("T")[0],
       status: "Active",
-    });
-    setIsEdit(false);
+    }); */
+   // setIsEdit(false);
     setDialogVisible(true);
   };
 
   // edit existing record
-  const openEdit = (UserRecord: UserRecord) => {
+/*   const openEdit = (UserRecord: UserRecord) => {
     setForm(UserRecord);
     setIsEdit(true);
     setDialogVisible(true);
-  };
+  }; */
 
-  const saveUserRecord = () => {
+ /*  const saveUserRecord = () => {
     if (isEdit) {
       setRecentUserRecord((prev) =>
         prev.map((a) => (a.id === form.id ? form : a))
@@ -220,16 +219,16 @@ export default function PredictData() {
       setRecentUserRecord((prev) => [...prev, form]);
     }
     setDialogVisible(false);
-  };
+  }; */
 
-  const deleteUserRecord = (UserRecord: UserRecord) => {
+/*   const deleteUserRecord = (UserRecord: UserRecord) => {
     setRecentUserRecord((prev) => prev.filter((a) => a.id !== UserRecord.id));
-  };
+  }; */
   const exportExcel = () => {
     dt.current?.exportCSV();
   };
 
-  const dialogFooter = (
+  /* const dialogFooter = (
     <div>
       <Button
         label="Save"
@@ -244,7 +243,7 @@ export default function PredictData() {
         className="p-button-sm p-button-secondary"
       />
     </div>
-  );
+  ); */
   const getSeverity = (status: string) => {
     switch (status) {
       case "On Hold":
@@ -326,9 +325,8 @@ export default function PredictData() {
           <InputText
             type="search"
             placeholder="Search..."
-            onInput={(e) => {
-              const target = e.target as HTMLInputElement;
-              setGlobalFilter(target.value);
+            onInput={() => {
+              
             }}
           />
         </IconField>

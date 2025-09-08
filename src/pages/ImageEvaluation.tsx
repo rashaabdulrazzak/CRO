@@ -10,7 +10,6 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { getPatients, savePatients, type Patient,type PatientImage } from '../lib/mockData';
 // import { toast } from 'sonner';
 import { Toast } from 'primereact/toast';
-import MedicalCriteriaForm from '../components/medicalCriteriaForm';
 
 export default function ImageEvaluation() {
   const { user } = useAuth();
