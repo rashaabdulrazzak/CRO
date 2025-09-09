@@ -33,21 +33,21 @@ const navigate = useNavigate()
       const menuItems = [
         {
             label: 'Trial Cases',
-            command:()=>navigate('/trialcases'),
+            command:()=>navigate('/trial-cases'),
              roles: ['field_coordinator']
            
         },
         {
             label: 'Image Assessment',
-            command:()=>navigate('/imageAssessment')
+            command:()=>navigate('/image-assessment')
         },
         {
             label: 'Pathology of Cases',
-            
+            command:() => navigate('/pathology-results')
         },
         {
             label: ' Approval of Cases',
-            command:() => navigate('/approvalCases')
+            command:() => navigate('/approval-cases')
             
         },
         {
@@ -60,14 +60,14 @@ const navigate = useNavigate()
             command:() => navigate('/roles')
             
         },
-      /*   {
-            label: 'Entry',
-            command:() => navigate('/patientEntry')
+         {
+            label: 'monitor',
+            command:() => navigate('/monitor-home')
             
-        }, */
+        }, 
         {
             label: 'evaluation',
-            command:() => navigate('/imageEvaluation')
+            command:() => navigate('/image-evaluation')
             
         },
     ];

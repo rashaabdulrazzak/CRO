@@ -92,7 +92,7 @@ export default function ImageAssessment() {
         <h1 className="text-2xl font-bold text-gray-900"> Image Assessment Module </h1>
 
         {/* Input Section */}
-        <Panel className="p-0">
+        <Panel className="panel-border p-0">
           <div className="border border-gray-300">
             <div className="grid grid-cols-2 border-b border-gray-300">
               <div className="p-4 border-r border-gray-300">

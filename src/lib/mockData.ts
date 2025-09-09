@@ -167,6 +167,8 @@ export const getNextImageNumber = (): string => {
 };
 
 export const getLastDownloadTime = (): string | null => {
+    console.log('Last download time:', localStorage.getItem('lastDownloadTime'));
+
   return localStorage.getItem('lastDownloadTime');
 };
 
@@ -176,6 +178,7 @@ export const setLastDownloadTime = (time: string) => {
 
 export const canDownload = (): boolean => {
   const lastDownload = getLastDownloadTime();
+  console.log('Last download time:', lastDownload);
   if (!lastDownload) return true;
   
   const lastDownloadTime = new Date(lastDownload);

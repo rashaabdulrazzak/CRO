@@ -8,7 +8,6 @@ import { Tag } from 'primereact/tag';
 import { Dropdown } from 'primereact/dropdown';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { getPatients, savePatients, type Patient,type PatientImage } from '../lib/mockData';
-// import { toast } from 'sonner';
 import { Toast } from 'primereact/toast';
 
 export default function ImageEvaluation() {
@@ -155,7 +154,7 @@ export default function ImageEvaluation() {
      <Toast ref={toast} />
 
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+ {/*      <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <Button
@@ -169,7 +168,7 @@ export default function ImageEvaluation() {
             <h1 className="text-xl font-semibold text-gray-900">Image Evaluation</h1>
           </div>
         </div>
-      </header>
+      </header> */}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

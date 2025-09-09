@@ -7,8 +7,10 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import log from '../assets/triacklogo.png'
 import { LoginDTO } from "../modules"
+import { useAuth } from "../components/AuthContext";
 
 const Login = () => {
+  const { login } = useAuth();
   const validationSchema = Yup.object({
     email: Yup.string().email('Invalid email address').required('Email is required'),
     password: Yup.string().required('password is required').matches(
@@ -21,7 +23,14 @@ const Login = () => {
     validateOnChange: true,
     validationSchema:validationSchema,
     onSubmit: async () => {
-      await authLogin(loginform.values);
+    //  await authLogin(loginform.values);
+      const success = login(loginform.values.email, loginform.values.password);
+      if (success) {
+        // Redirect to a protected route or dashboard
+        window.location.href = '/'; // Example redirect
+      } else {
+        alert('Invalid email or password');
+      }
     },
   });
 

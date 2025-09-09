@@ -120,15 +120,15 @@ export default function ActionDialog({
       }
     >
       {/* Questions */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 p-4">
         {qConfig.map((q, idx) => {
-          const isYellow = idx === 6 || idx === 7 || idx === 8; // Q7, Q8, Q9
+          const isYellow = idx === 6 || idx === 7 || idx === 8 || idx === 9 || idx === 10; // Q7, Q8, Q9
 
           if (q.type === "label") {
             return (
               <div
                 key={idx}
-                className={`p-3 border rounded-lg ${isYellow ? "bg-yellow-50" : ""}`}
+                className={`p-3 border rounded-lg ${isYellow ? "bg-yellow-100" : ""}`}
               >
                 <div className="font-medium text-sm">{q.label}</div>
               </div>
@@ -140,7 +140,7 @@ export default function ActionDialog({
             return (
               <div
                 key={idx}
-                className={`p-3 border rounded-lg flex flex-col md:flex-row md:items-center md:justify-between ${isYellow ? "bg-yellow-50" : ""}`}
+                className={`p-3 border rounded-lg flex flex-col md:flex-row md:items-center md:justify-between ${isYellow ? "bg-yellow-100" : ""}`}
               >
                 <div className="font-medium text-sm mb-2 md:mb-0">{q.label}</div>
                 <div className="flex items-center gap-6">
@@ -174,7 +174,7 @@ export default function ActionDialog({
             return (
               <div
                 key={idx}
-                className={`p-3 border rounded-lg flex items-center justify-between ${isYellow ? "bg-yellow-50" : ""}`}
+                className={`p-3 border rounded-lg flex items-center justify-between ${isYellow ? "bg-yellow-100" : ""}`}
               >
                 <div className="font-medium text-sm">{q.label}</div>
                 <div className="flex items-center gap-2">
@@ -199,7 +199,7 @@ export default function ActionDialog({
                 id={`q-${idx}-txt`}
                 rows={3}
                 autoResize
-                className={`w-full ${isYellow ? "bg-yellow-50" : ""}`} // ✅ yellow only for Q9 textarea
+                className={`w-full ${isYellow ? "bg-yellow-100" : ""}`} // ✅ yellow only for Q9 textarea
                 value={textVal}
                 onChange={(e) => setAnswer(idx, e.target.value)}
               />
@@ -209,10 +209,10 @@ export default function ActionDialog({
       </div>
 
       {/* Divider */}
-      <div className="border-t my-5"  />
- <h3 className="text-base m-2">Araştırmacının Onayı (Confirmation of the Researcher):</h3>
+      <div className="border-t my-5 p-4"  />
+ <h3 className="text-base m-2 p-4">Araştırmacının Onayı (Confirmation of the Researcher):</h3>
       {/* Username */}
-      <div className="flex items-center gap-3 mx-2 mb-4" >
+      <div className="flex items-center gap-3 mx-2 mb-4 p-4" >
        
         <label htmlFor="action-username" className="text-sm whitespace-nowrap">Araştırmacı Adı (Researcher Name):</label>
         <InputText
@@ -225,7 +225,7 @@ export default function ActionDialog({
       </div>
 
       {/* Is Approved */}
-      <div className="flex items-center gap-2 mx-2 ">
+      <div className="flex items-center gap-2 mx-2 p-4">
        
         <label htmlFor="isApproved" className="text-sm">Vaka tamamlanmıştır. (Case is completed):</label>
          <Checkbox

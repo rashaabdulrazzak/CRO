@@ -20,10 +20,11 @@ interface AuthContextType {
 // Mock users for demonstration
 const mockUsers = [
   { id: '1', username: 'coordinator1', password: 'Pass123!', email:"coordinator1@test.com",role: 'field_coordinator' as const },
-  { id: '2', username: 'radiologist1', password: 'Pass123!', role: 'radiologist' as const },
-  { id: '3', username: 'radiologist2', password: 'Pass123!', role: 'radiologist' as const },
-  { id: '4', username: 'radiologist3', password: 'Pass123!', role: 'radiologist' as const },
-  { id: '5', username: 'monitor1', password: 'Pass123!', role: 'monitor' as const },
+  { id: '2', username: 'radiologist1', password: 'Pass123!', email:"radiologist1@test.com",role: 'radiologist' as const },
+  { id: '3', username: 'radiologist2', password: 'Pass123!', email:"radiologist2@test.com",role: 'radiologist' as const },
+  { id: '4', username: 'radiologist3', password: 'Pass123!',email:"radiologist3@test.com", role: 'radiologist' as const },
+  { id: '5', username: 'monitor1', password: 'Pass123!', email:"monitor@test.com",role: 'monitor' as const },
+  { id: '5', username: 'Biostatistician', password: 'Pass123!', email:"biostatistician@test.com",role: 'monitor' as const },
 ];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -36,8 +37,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = (username: string, password: string): boolean => {
-    const foundUser = mockUsers.find(u => u.username === username && u.password === password);
+  const login = (email: string, password: string): boolean => {
+    const foundUser = mockUsers.find(u => u.email === email && u.password === password);
     if (foundUser) {
       const loginTime = new Date().toISOString();
       const userWithLoginTime = {
