@@ -8,6 +8,7 @@ import { Button } from "primereact/button";
 import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
 import { Tag } from "primereact/tag";
+import 'primeflex/primeflex.css';
 // ===== Types =====
 export type User = {
   id: number;
@@ -24,13 +25,7 @@ export type User = {
 };
 
 // ===== Options =====
-const roleOptions = [
-  { label: "Default", value: "Default" },
-  { label: "Developer Role", value: "Developer Role" },
-  { label: "Tester Role", value: "Tester Role" },
-  { label: "Admin", value: "Admin" },
-  { label: "User", value: "User" },
-];
+import { roleOptions } from "../types";
 
 const statusOptions = [
   { label: "Active", value: "Active" },
@@ -45,7 +40,7 @@ const defaultUsers: User[] = [
     surname: "Johnson",
     email: "alice.johnson@example.com",
     phoneNumber: "+1-555-123-4567",
-    role: "Admin",
+    role: roleOptions[0].label,
     createdby: "system",
     createddate: "2023-05-01T10:15:00Z",
     modifiedby: "system",
@@ -58,7 +53,7 @@ const defaultUsers: User[] = [
     surname: "Smith",
     email: "bob.smith@example.com",
     phoneNumber: "+1-555-987-6543",
-    role: "Developer Role",
+    role: roleOptions[2].label,
     createdby: "Alice",
     createddate: "2023-06-10T12:30:00Z",
     modifiedby: "Alice",
@@ -70,7 +65,7 @@ const defaultUsers: User[] = [
     name: "Charlie",
     surname: "Brown",
     email: "charlie.brown@example.com",
-    role: "Tester Role",
+    role: roleOptions[3].label,
     createdby: "Bob",
     createddate: "2023-07-20T09:00:00Z",
     modifiedby: "Bob",
@@ -83,7 +78,7 @@ const defaultUsers: User[] = [
     surname: "Miller",
     email: "diana.miller@example.com",
     phoneNumber: "+1-555-246-8101",
-    role: "User",
+    role:roleOptions[4].label,
     createdby: "Charlie",
     createddate: "2023-08-05T16:10:00Z",
     modifiedby: "Charlie",
@@ -95,7 +90,7 @@ const defaultUsers: User[] = [
     name: "Ethan",
     surname: "Williams",
     email: "ethan.williams@example.com",
-    role: "Default",
+    role: roleOptions[5].label,
     createdby: "Diana",
     createddate: "2023-09-01T08:00:00Z",
     modifiedby: "Diana",
@@ -487,13 +482,13 @@ const Users: React.FC = () => {
           <Button
             label="Save"
             icon="pi pi-check"
-            className="p-button-sm save-btn"
+            className="p-button-sm  p-button-secondary"
             onClick={saveUser}
           />
           <Button
             label="Cancel"
             icon="pi pi-times"
-            className="p-button-sm p-button-secondary cancel-btn"
+            className="p-button-sm cancel-btn"
             onClick={hideDialog}
           />
         </div>

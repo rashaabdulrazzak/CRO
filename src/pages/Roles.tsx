@@ -9,6 +9,7 @@ import { IconField } from 'primereact/iconfield';
 import { InputIcon } from 'primereact/inputicon';
 import { AddRoleDialog } from "../components/addRoleDialog";
 import { Tag } from "primereact/tag";
+import { roleOptions } from "../types";
 
 // ===== Types =====
 export type Role = {
@@ -58,7 +59,7 @@ const statusOptions = [
 const defaultRoles: Role[] = [
   {
     id: 1,
-    roleName: "Monitor",
+    roleName: roleOptions[0].label,
     status: "Active",
     createdBy: "system",
     createdOn: "2023-05-01T10:15:00Z",
@@ -67,7 +68,7 @@ const defaultRoles: Role[] = [
   },
   {
     id: 2,
-    roleName: "Biostatistician",
+    roleName: roleOptions[1].label,
     status: "Active",
     createdBy: "Alice",
     createdOn: "2023-06-10T12:30:00Z",
@@ -76,7 +77,7 @@ const defaultRoles: Role[] = [
   },
   {
     id: 3,
-    roleName: "Site coordinator",
+    roleName: roleOptions[2].label,
     status: "Inactive",
     createdBy: "Bob",
     createdOn: "2023-07-20T09:00:00Z",
@@ -85,7 +86,7 @@ const defaultRoles: Role[] = [
   },
   {
     id: 4,
-    roleName: "Hekim",
+    roleName: roleOptions[3].label,
     status: "Active",
     createdBy: "Charlie",
     createdOn: "2023-08-05T16:10:00Z",
@@ -94,7 +95,7 @@ const defaultRoles: Role[] = [
   },
   {
     id: 5,
-    roleName: "Physician",
+    roleName: roleOptions[4].label,
     status: "Active",
     createdBy: "Diana",
     createdOn: "2023-09-01T08:00:00Z",
@@ -103,7 +104,7 @@ const defaultRoles: Role[] = [
   },
   {
     id: 6,
-    roleName: "Patolog Hekim",
+    roleName: roleOptions[5].label,
     status: "Active",
     createdBy: "Diana",
     createdOn: "2023-09-01T08:00:00Z",
