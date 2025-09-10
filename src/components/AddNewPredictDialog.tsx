@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type React from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog } from "primereact/dialog";
 import { Steps } from "primereact/steps";
 import { InputText } from "primereact/inputtext";
@@ -10,6 +10,7 @@ import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
 import { Checkbox } from "primereact/checkbox";
 import { FileUpload } from "primereact/fileupload";
+import { Toast } from "primereact/toast";
 import { getNextImageNumber } from "../lib/mockData";
 import { CriteriaItem } from "./CriteriaItem";
 
@@ -33,9 +34,9 @@ interface DemographicForm {
   size: string;
   bodyMassIndex: string;
   referredFrom: string;
-  usgDevice: string; // NEW: device/probe details
+  usgDevice: string; // device/probe details
 
-  // Optional quick questions (you had these in your UI)
+  // Optional quick questions
   question1: YesNo;
   question2: YesNo;
   question3: YesNo;
@@ -54,37 +55,30 @@ interface MedicalHistoryForm {
   medicalQuestion5: YesNo | "";
 }
 
-// Step 2–3
-/* interface InclusionForm {
-  inclusionQuestion1: YesNo;
-  inclusionQuestion2: YesNo;
-  inclusionQuestion3: YesNo;
-  inclusionQuestion4: YesNo;
-  inclusionQuestion5: YesNo;
-} */
+// Step 2–3 (booleans)
 type InclusionForm = {
-  ageOver18: boolean | null
-  thyroidNoduleSuspicion: boolean | null
-  bgofVolunteer: boolean | null
-  notRestricted: boolean | null
-}
+  ageOver18: boolean | null;
+  thyroidNoduleSuspicion: boolean | null;
+  bgofVolunteer: boolean | null;
+  notRestricted: boolean | null;
+};
 
 const initialInc: InclusionForm = {
   ageOver18: null,
   thyroidNoduleSuspicion: null,
   bgofVolunteer: null,
   notRestricted: null,
-}
+};
 
 type ExclusionForm = {
-  ageUnder18: boolean | null
-  nonBgofVolunteer: boolean | null
-  restricted: boolean | null
-  baskaclinikcalismadayerolmak: boolean | null
-  tiroidBeziIleIlgiliOperasyon: boolean | null
-  diffuzParenkimalOlgular: boolean | null
-  birNoduluTespitEdilemeyenOlgular: boolean | null
-}
+  ageUnder18: boolean | null;
+  nonBgofVolunteer: boolean | null;
+  restricted: boolean | null;
+  baskaclinikcalismadayerolmak: boolean | null;
+  tiroidBeziIleIlgiliOperasyon: boolean | null;
+  diffuzParenkimalOlgular: boolean | null;
+  birNoduluTespitEdilemeyenOlgular: boolean | null;
+};
 
 // Step 4
 interface AIDiag {
@@ -237,6 +231,7 @@ export const AddNewPredictDialog: React.FC<AddNewPredictDialogProps> = ({
   onHide,
 }) => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const toast = useRef<Toast>(null);
 
   // ---- initial states
   const initialDemographic: DemographicForm = useMemo(
@@ -273,26 +268,16 @@ export const AddNewPredictDialog: React.FC<AddNewPredictDialogProps> = ({
     }),
     []
   );
-  
-/*   const initialInc: InclusionForm = useMemo(
-    () => ({
-      inclusionQuestion1: "yes",
-      inclusionQuestion2: "yes",
-      inclusionQuestion3: "yes",
-      inclusionQuestion4: "yes",
-      inclusionQuestion5: "yes",
-    }),
-    []
-  ); */
-const initialExc: ExclusionForm = {
-  ageUnder18: null,
-  nonBgofVolunteer: null,
-  restricted: null,
-  baskaclinikcalismadayerolmak: null,
-  tiroidBeziIleIlgiliOperasyon: null,
-  diffuzParenkimalOlgular: null,
-  birNoduluTespitEdilemeyenOlgular: null,
-}
+
+  const initialExc: ExclusionForm = {
+    ageUnder18: null,
+    nonBgofVolunteer: null,
+    restricted: null,
+    baskaclinikcalismadayerolmak: null,
+    tiroidBeziIleIlgiliOperasyon: null,
+    diffuzParenkimalOlgular: null,
+    birNoduluTespitEdilemeyenOlgular: null,
+  };
 
   const initialAI: AIDiag = useMemo(
     () => ({
@@ -359,12 +344,7 @@ const initialExc: ExclusionForm = {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const generateVolunteerId = () => {
-    const nextId = getNextImageNumber();
-    //setFormData(prev => ({ ...prev, volunteerId: nextId }));
-    setDemographic((prev) => ({ ...prev, volunteerCode: nextId }));
-    //  return nextId;
-  };
+
   // ---- autosave draft
   useEffect(() => {
     lsSet(draftKey, {
@@ -484,19 +464,37 @@ const initialExc: ExclusionForm = {
     localStorage.removeItem(draftKey);
   };
 
+  const generateVolunteerId = () => {
+    const next = getNextImageNumber();
+    setDemographic((prev) => ({
+      ...prev,
+      volunteerCode: normalizeVolunteerCode(next),
+    }));
+  };
+
+  const showError = (detail: string) =>
+    toast.current?.show({ severity: "error", summary: "Hata", detail, life: 3000 });
+  const showInfo = (detail: string) =>
+    toast.current?.show({ severity: "info", summary: "Bilgi", detail, life: 2000 });
+  const showSuccess = (detail: string) =>
+    toast.current?.show({ severity: "success", summary: "Başarılı", detail, life: 2500 });
+
   const handleSaveAndNext = async () => {
     try {
-      // STEP 0: create patient
+      // STEP 0: create patient with validations
       if (activeIndex === 0) {
         const code = normalizeVolunteerCode(demographic.volunteerCode);
-        if (!VOL_ID_RE.test(code))
-          throw new Error(
-            "Volunteer ID must match TR00000 format (e.g., TR00001)"
-          );
-        if (!demographic.nameSurname?.trim())
-          throw new Error("Name Surname is required");
-
+        if (!VOL_ID_RE.test(code)) {
+          showError("Gönüllü ID formatı TR00000 olmalıdır (ör. TR00001).");
+          return;
+        }
+        if (!demographic.nameSurname?.trim()) {
+          showError("Name Surname zorunludur.");
+          return;
+        }
+        // persist normalized code
         setDemographic((prev) => ({ ...prev, volunteerCode: code }));
+
         const age = calcAgeFromDate(demographic.birthDate);
         const sex =
           demographic.gender === "male"
@@ -505,7 +503,6 @@ const initialExc: ExclusionForm = {
             ? "female"
             : undefined;
 
-        // local patient
         const localPatient = createPatientLocal({
           code,
           name: demographic.nameSurname.trim(),
@@ -514,43 +511,68 @@ const initialExc: ExclusionForm = {
         });
         setPatientId(localPatient.id);
 
-        // mirror to backend (optional)
         if (USE_BACKEND) {
-          const { patient } = await api("/patients", "POST", {
+          await api("/patients", "POST", {
             name: demographic.nameSurname.trim(),
             age,
             sex,
             code,
           });
-          console.log("backend patient", patient);
         }
-
         setActiveIndex(1);
+        showInfo("Hasta oluşturuldu.");
         return;
       }
 
-      // intermediate steps
+      // STEP 2 (Inclusion): require ALL true
+   if (activeIndex === 2) {
+   const allTrue = Object.values(inclusion).every((v) => v === true);
+      if (!allTrue) {
+        showError("Dahil etme kriterlerinin tamamı 'Evet' olmalıdır. Hasta eklenemez.");
+        return;
+      }
+    }
+
+      // STEP 3 (Exclusion): block if ANY true
+if (activeIndex === 3) {
+  const bools = Object.values(exclusion);
+  console.log("bools:", bools);
+  const trueCount = bools.filter(Boolean).length;
+  console.log("Exclusion true count:", trueCount);
+
+  if (trueCount === 0) {
+    showError("Hariç tutma kriterlerinde tam olarak bir tanesi 'Evet' olmalı; diğerlerinin hepsi 'Hayır' olmalıdır.");
+    return;
+  }
+
+  // exactly one exclusion = exclude patient
+  showError("Hariç tutma kriterlerinden biri 'Evet'. Hasta eklenemez.");
+  return;
+}
+      // Intermediate steps (1,2,3,4): continue
       if (activeIndex > 0 && activeIndex < 5) {
         setActiveIndex(activeIndex + 1);
         return;
       }
 
-      // FINAL STEP: case + uploads + forms
+      // FINAL STEP (5): require at least one image, then save everything
       if (activeIndex === 5) {
-        if (!patientId) throw new Error("Patient not created");
+        if (!patientId) {
+          showError("Hasta oluşturulamadı. Lütfen baştan deneyin.");
+          return;
+        }
+        if (!uploadedPhotos.length) {
+          showError("Lütfen en az bir USG görüntüsü yükleyin.");
+          return;
+        }
 
-        // Case imageId = first numbered image TRxxxxx-01
-        const base = demographic.volunteerCode;
+        const base = normalizeVolunteerCode(demographic.volunteerCode);
         const caseImageId = makeImageId(base, 0);
         const localCase = createCaseLocal({ patientId, imageId: caseImageId });
         setCaseId(localCase.id);
 
         if (USE_BACKEND) {
-          const { case: createdCase } = await api("/cases", "POST", {
-            patientId,
-            imageId: caseImageId,
-          });
-          console.log("backend case", createdCase);
+          await api("/cases", "POST", { patientId, imageId: caseImageId });
         }
 
         // Uploads numbered TRxxxxx-01, -02, ...
@@ -570,103 +592,85 @@ const initialExc: ExclusionForm = {
         }
 
         // Visit/administrative form
+        const visitPayload = {
+          volunteerCode: base,
+          protocolNo: demographic.protocolNo,
+          visitDate: demographic.visitDate
+            ? demographic.visitDate.toISOString().split("T")[0]
+            : null,
+          secondVisitDate: demographic.secondVisitDate
+            ? demographic.secondVisitDate.toISOString().split("T")[0]
+            : null,
+          referredFrom: demographic.referredFrom,
+          usgDevice: demographic.usgDevice,
+          bmi: demographic.bodyMassIndex,
+          weight: demographic.weight,
+          size: demographic.size,
+          extraQuestions: {
+            q1: demographic.question1,
+            q2: demographic.question2,
+            q3: demographic.question3,
+            q4: demographic.question4,
+            q5: demographic.question5,
+          },
+        };
         createFormLocal({
           caseId: localCase.id,
           type: "CRF01-visit",
           version: "v1",
-          data: {
-            volunteerCode: base,
-            protocolNo: demographic.protocolNo,
-            visitDate: demographic.visitDate
-              ? demographic.visitDate.toISOString().split("T")[0]
-              : null,
-            secondVisitDate: demographic.secondVisitDate
-              ? demographic.secondVisitDate.toISOString().split("T")[0]
-              : null,
-            referredFrom: demographic.referredFrom,
-            usgDevice: demographic.usgDevice,
-            bmi: demographic.bodyMassIndex,
-            weight: demographic.weight,
-            size: demographic.size,
-            extraQuestions: {
-              q1: demographic.question1,
-              q2: demographic.question2,
-              q3: demographic.question3,
-              q4: demographic.question4,
-              q5: demographic.question5,
-            },
-          },
+          data: visitPayload,
         });
         if (USE_BACKEND) {
           await api(`/forms/cases/${localCase.id}`, "POST", {
             type: "CRF01-visit",
             version: "v1",
-            data: {
-              volunteerCode: base,
-              protocolNo: demographic.protocolNo,
-              visitDate: demographic.visitDate
-                ? demographic.visitDate.toISOString().split("T")[0]
-                : null,
-              secondVisitDate: demographic.secondVisitDate
-                ? demographic.secondVisitDate.toISOString().split("T")[0]
-                : null,
-              referredFrom: demographic.referredFrom,
-              usgDevice: demographic.usgDevice,
-              bmi: demographic.bodyMassIndex,
-              weight: demographic.weight,
-              size: demographic.size,
-              extraQuestions: {
-                q1: demographic.question1,
-                q2: demographic.question2,
-                q3: demographic.question3,
-                q4: demographic.question4,
-                q5: demographic.question5,
-              },
-            },
+            data: visitPayload,
             createdByUserId: 1,
           });
         }
 
         // Eligibility form (medical + inclusion + exclusion)
+        const eligibilityPayload = { medicalHistory: medical, inclusion, exclusion };
         createFormLocal({
           caseId: localCase.id,
           type: "CRF01-eligibility",
           version: "v1",
-          data: { medicalHistory: medical, inclusion, exclusion },
+          data: eligibilityPayload,
         });
         if (USE_BACKEND) {
           await api(`/forms/cases/${localCase.id}`, "POST", {
             type: "CRF01-eligibility",
             version: "v1",
-            data: { medicalHistory: medical, inclusion, exclusion },
+            data: eligibilityPayload,
             createdByUserId: 1,
           });
         }
 
         // AI form with TIRADS
         const tirads = computeTirads(ai);
+        const aiPayload = { ...ai, tirads };
         createFormLocal({
           caseId: localCase.id,
           type: "CRF01-ai",
           version: "v1",
-          data: { ...ai, tirads },
+          data: aiPayload,
         });
         if (USE_BACKEND) {
           await api(`/forms/cases/${localCase.id}`, "POST", {
             type: "CRF01-ai",
             version: "v1",
-            data: { ...ai, tirads },
+            data: aiPayload,
             createdByUserId: 1,
           });
         }
 
-        // done
+        showSuccess("Kayıt tamamlandı.");
         resetFormToInitialState();
         onHide();
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      // TODO: show a toast if desired
+      showError(typeof err?.message === "string" ? err.message : "İşlem sırasında bir hata oluştu.");
     }
   };
 
@@ -694,210 +698,207 @@ const initialExc: ExclusionForm = {
     }
   };
 
- const renderDemographicInformation = () => (
-  <>
-    {/* ONE grid for all fields */}
- <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {/* Volunteer ID + Generate */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Volunteer ID (Gönüllü No)
-        </label>
-        <div className="flex gap-2">
+  const renderDemographicInformation = () => (
+    <>
+      {/* ONE grid for all fields */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Volunteer ID + Generate */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Volunteer ID (Gönüllü No)
+          </label>
+          <div className="flex gap-2">
+            <InputText
+              id="volunteerId"
+              value={demographic.volunteerCode}
+              onChange={(e) =>
+                setDemographic((prev) => ({ ...prev, volunteerCode: e.target.value }))
+              }
+              onBlur={(e) =>
+                setDemographic((prev) => ({
+                  ...prev,
+                  volunteerCode: normalizeVolunteerCode(e.target.value),
+                }))
+              }
+              placeholder="e.g., TR00001"
+              className="w-full"
+            />
+            <Button
+              type="button"
+              label="Generate"
+              onClick={generateVolunteerId}
+              className="shrink-0"
+            />
+          </div>
+          <small className="text-gray-500">Format: TR + 5 digits (TR00001)</small>
+        </div>
+
+        {/* Protocol No */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Protocol No</label>
           <InputText
-            id="volunteerId"
-            value={demographic.volunteerCode}
+            value={demographic.protocolNo}
             onChange={(e) =>
-              setDemographic((prev) => ({ ...prev, volunteerCode: e.target.value }))
+              setDemographic((prev) => ({ ...prev, protocolNo: e.target.value }))
             }
-            onBlur={(e) =>
-              setDemographic((prev) => ({
-                ...prev,
-                volunteerCode: normalizeVolunteerCode(e.target.value),
-              }))
-            }
-            placeholder="e.g., TR00001"
             className="w-full"
           />
-          <Button
-            type="button"
-            label="Generate"
-            onClick={generateVolunteerId}
-            className="shrink-0"
+        </div>
+
+        {/* First Visit Date */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            First Visit Date (USG)
+          </label>
+          <Calendar
+            value={demographic.visitDate}
+            onChange={(e) =>
+              setDemographic((prev) => ({ ...prev, visitDate: (e.value as Date) ?? null }))
+            }
+            className="w-full"
+            inputClassName="w-full"
+            showIcon
           />
         </div>
-        <small className="text-gray-500">Format: TR + 5 digits (TR00001)</small>
-      </div>
 
-      {/* Protocol No */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Protocol No</label>
-        <InputText
-          value={demographic.protocolNo}
-          onChange={(e) =>
-            setDemographic((prev) => ({ ...prev, protocolNo: e.target.value }))
-          }
-          className="w-full"
-        />
-      </div>
+        {/* Name Surname */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Name Surname</label>
+          <InputText
+            value={demographic.nameSurname}
+            onChange={(e) =>
+              setDemographic((prev) => ({ ...prev, nameSurname: e.target.value }))
+            }
+            placeholder="Name Surname"
+            className="w-full"
+          />
+        </div>
 
-      {/* First Visit Date */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          First Visit Date (USG)
-        </label>
-        <Calendar
-          value={demographic.visitDate}
-          onChange={(e) =>
-            setDemographic((prev) => ({ ...prev, visitDate: (e.value as Date) ?? null }))
-          }
-          className="w-full"
-          inputClassName="w-full"
-          showIcon
-        />
-      </div>
+        {/* Birth Date */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Birth Date</label>
+          <Calendar
+            value={demographic.birthDate}
+            onChange={(e) =>
+              setDemographic((prev) => ({ ...prev, birthDate: (e.value as Date) ?? null }))
+            }
+            className="w-full"
+            inputClassName="w-full"
+            showIcon
+          />
+        </div>
 
-      {/* Name Surname */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Name Surname</label>
-        <InputText
-          value={demographic.nameSurname}
-          onChange={(e) =>
-            setDemographic((prev) => ({ ...prev, nameSurname: e.target.value }))
-          }
-          placeholder="Name Surname"
-          className="w-full"
-        />
-      </div>
+        {/* Second Visit Date */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Second Visit Date (Pathology)
+          </label>
+          <Calendar
+            value={demographic.secondVisitDate}
+            onChange={(e) =>
+              setDemographic((prev) => ({
+                ...prev,
+                secondVisitDate: (e.value as Date) ?? null,
+              }))
+            }
+            className="w-full"
+            inputClassName="w-full"
+            showIcon
+          />
+        </div>
 
-      {/* Birth Date */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Birth Date</label>
-        <Calendar
-          value={demographic.birthDate}
-          onChange={(e) =>
-            setDemographic((prev) => ({ ...prev, birthDate: (e.value as Date) ?? null }))
-          }
-          className="w-full"
-          inputClassName="w-full"
-          showIcon
-        />
-      </div>
+        {/* Body Mass Index */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Body Mass Index</label>
+          <InputText
+            value={demographic.bodyMassIndex}
+            onChange={(e) =>
+              setDemographic((prev) => ({ ...prev, bodyMassIndex: e.target.value }))
+            }
+            className="w-full"
+          />
+        </div>
 
-      {/* Second Visit Date */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Second Visit Date (Pathology)
-        </label>
-        <Calendar
-          value={demographic.secondVisitDate}
-          onChange={(e) =>
-            setDemographic((prev) => ({
-              ...prev,
-              secondVisitDate: (e.value as Date) ?? null,
-            }))
-          }
-          className="w-full"
-          inputClassName="w-full"
-          showIcon
-        />
-      </div>
+        {/* USG Device / Probe */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">USG Device / Probe</label>
+          <InputText
+            value={demographic.usgDevice}
+            onChange={(e) =>
+              setDemographic((prev) => ({ ...prev, usgDevice: e.target.value }))
+            }
+            placeholder="e.g., Brand Model, Probe MHz"
+            className="w-full"
+          />
+        </div>
 
-   
+        {/* Referred From */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Referred From</label>
+          <Dropdown
+            value={demographic.referredFrom}
+            options={referralOptions}
+            onChange={(e) =>
+              setDemographic((prev) => ({ ...prev, referredFrom: e.value }))
+            }
+            className="w-full"
+            panelClassName="mt-1"
+          />
+        </div>
 
-      {/* Body Mass Index */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Body Mass Index</label>
-        <InputText
-          value={demographic.bodyMassIndex}
-          onChange={(e) =>
-            setDemographic((prev) => ({ ...prev, bodyMassIndex: e.target.value }))
-          }
-          className="w-full"
-        />
-      </div>
+        {/* Weight */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
+          <InputText
+            value={demographic.weight}
+            onChange={(e) =>
+              setDemographic((prev) => ({ ...prev, weight: e.target.value }))
+            }
+            className="w-full"
+          />
+        </div>
 
-      {/* USG Device / Probe */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">USG Device / Probe</label>
-        <InputText
-          value={demographic.usgDevice}
-          onChange={(e) =>
-            setDemographic((prev) => ({ ...prev, usgDevice: e.target.value }))
-          }
-          placeholder="e.g., Brand Model, Probe MHz"
-          className="w-full"
-        />
-      </div>
+        {/* Size */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Size (cm)</label>
+          <InputText
+            value={demographic.size}
+            onChange={(e) => setDemographic((prev) => ({ ...prev, size: e.target.value }))}
+            className="w-full"
+          />
+        </div>
 
-      {/* Referred From */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Referred From</label>
-        <Dropdown
-          value={demographic.referredFrom}
-          options={referralOptions}
-          onChange={(e) =>
-            setDemographic((prev) => ({ ...prev, referredFrom: e.value }))
-          }
-          className="w-full"
-          panelClassName="mt-1"
-        />
-      </div>
-
-      {/* Weight */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
-        <InputText
-          value={demographic.weight}
-          onChange={(e) =>
-            setDemographic((prev) => ({ ...prev, weight: e.target.value }))
-          }
-          className="w-full"
-        />
-      </div>
-
-      {/* Size */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Size (cm)</label>
-        <InputText
-          value={demographic.size}
-          onChange={(e) => setDemographic((prev) => ({ ...prev, size: e.target.value }))}
-          className="w-full"
-        />
-      </div>
-         {/* Gender */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
-        <div className="flex flex-wrap gap-6">
-          {(["male", "female", "not-specify"] as Sex[]).map((val) => (
-            <div className="flex items-center" key={val}>
-              <RadioButton
-                inputId={`gender-${val}`}
-                name="gender"
-                value={val}
-                onChange={(e) =>
-                  setDemographic((prev) => ({ ...prev, gender: e.value }))
-                }
-                checked={demographic.gender === val}
-              />
-              <label htmlFor={`gender-${val}`} className="ml-2 text-sm text-gray-700">
-                {val === "not-specify" ? "Does not want to specify" : val[0].toUpperCase() + val.slice(1)}
-              </label>
-            </div>
-          ))}
+        {/* Gender */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+          <div className="flex flex-wrap gap-6">
+            {(["male", "female", "not-specify"] as Sex[]).map((val) => (
+              <div className="flex items-center" key={val}>
+                <RadioButton
+                  inputId={`gender-${val}`}
+                  name="gender"
+                  value={val}
+                  onChange={(e) =>
+                    setDemographic((prev) => ({ ...prev, gender: e.value }))
+                  }
+                  checked={demographic.gender === val}
+                />
+                <label htmlFor={`gender-${val}`} className="ml-2 text-sm text-gray-700">
+                  {val === "not-specify" ? "Does not want to specify" : val[0].toUpperCase() + val.slice(1)}
+                </label>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
 
-
-    {/* Other Information Section (unchanged) */}
-    <div className="mt-8">
-      <h3 className="text-lg font-medium text-gray-800 mb-6">Other informations</h3>
-      {/* ... keep your questions here ... */}
-    </div>
-  </>
-)
-
+      {/* Other Information Section (optional) */}
+      <div className="mt-8">
+        <h3 className="text-lg font-medium text-gray-800 mb-6">Other informations</h3>
+        {/* ... keep your questions here if needed ... */}
+      </div>
+    </>
+  );
 
   const renderMedicalHistory = () => (
     <div className="space-y-6">
@@ -997,90 +998,90 @@ const initialExc: ExclusionForm = {
     </div>
   );
 
- const renderInclusionCriteria = () => (
-  <div className="bg-white border border-gray-200 rounded-lg p-6">
-    <h2 className="text-xl font-semibold text-gray-900 mb-2">Dahil Etme Kriterleri</h2>
-    <p className="text-sm text-gray-600 mb-6">
-      Aşağıdaki kriterlerin hepsinin işaretlenmesi gönüllünün dahil edilme kriterlerini karşıladığını göstermektedir.
-    </p>
+  const renderInclusionCriteria = () => (
+    <div className="bg-white border border-gray-200 rounded-lg p-6">
+      <h2 className="text-xl font-semibold text-gray-900 mb-2">Dahil Etme Kriterleri</h2>
+      <p className="text-sm text-gray-600 mb-6">
+        Aşağıdaki kriterlerin hepsinin işaretlenmesi gönüllünün dahil edilme kriterlerini karşıladığını göstermektedir.
+      </p>
 
-    <div className="space-y-4">
-      <CriteriaItem
-        label="18 yaşından büyük"
-        value={inclusion.ageOver18}
-        onChange={(v) => setInclusion((p) => ({ ...p, ageOver18: v }))}
-      />
-      <CriteriaItem
-        label="Tiroid nodülü şüphesi taşımak"
-        value={inclusion.thyroidNoduleSuspicion}
-        onChange={(v) => setInclusion((p) => ({ ...p, thyroidNoduleSuspicion: v }))}
-      />
-      <CriteriaItem
-        label="BGOF alınmış gönüllü"
-        value={inclusion.bgofVolunteer}
-        onChange={(v) => setInclusion((p) => ({ ...p, bgofVolunteer: v }))}
-      />
-      <CriteriaItem
-        label="Kısıtlı olmamak (asker, yükümlü)"
-        value={inclusion.notRestricted}
-        onChange={(v) => setInclusion((p) => ({ ...p, notRestricted: v }))}
-      />
+      <div className="space-y-4">
+        <CriteriaItem
+          label="18 yaşından büyük"
+          value={inclusion.ageOver18}
+          onChange={(v) => setInclusion((p) => ({ ...p, ageOver18: v }))}
+        />
+        <CriteriaItem
+          label="Tiroid nodülü şüphesi taşımak"
+          value={inclusion.thyroidNoduleSuspicion}
+          onChange={(v) => setInclusion((p) => ({ ...p, thyroidNoduleSuspicion: v }))}
+        />
+        <CriteriaItem
+          label="BGOF alınmış gönüllü"
+          value={inclusion.bgofVolunteer}
+          onChange={(v) => setInclusion((p) => ({ ...p, bgofVolunteer: v }))}
+        />
+        <CriteriaItem
+          label="Kısıtlı olmamak (asker, yükümlü)"
+          value={inclusion.notRestricted}
+          onChange={(v) => setInclusion((p) => ({ ...p, notRestricted: v }))}
+        />
+      </div>
     </div>
-  </div>
-)
-const renderExclusionCriteria = () => (
-  <div className="bg-white border border-gray-200 rounded-lg p-6">
-    <h2 className="text-xl font-semibold text-gray-900 mb-4">Hariç Tutma Kriterleri</h2>
-    <p className="text-sm text-gray-600 mb-6">
-      Aşağıdaki kriterlerin en az birinin <strong>“Evet”</strong> olması hastanın hariç tutulmasını gerektirir.
-    </p>
+  );
 
-    <div className="space-y-4">
-      <CriteriaItem
-        label="18 yaşından küçük olmak"
-        value={exclusion.ageUnder18}
-        onChange={(v) => setExclusion((p) => ({ ...p, ageUnder18: v }))}
-      />
+  const renderExclusionCriteria = () => (
+    <div className="bg-white border border-gray-200 rounded-lg p-6">
+      <h2 className="text-xl font-semibold text-gray-900 mb-4">Hariç Tutma Kriterleri</h2>
+      <p className="text-sm text-gray-600 mb-6">
+        Aşağıdaki kriterlerin en az birinin <strong>“Evet”</strong> olması hastanın hariç tutulmasını gerektirir.
+      </p>
 
-      <CriteriaItem
-        label="BGOF alınmamış gönüllüler"
-        value={exclusion.nonBgofVolunteer}
-        onChange={(v) => setExclusion((p) => ({ ...p, nonBgofVolunteer: v }))}
-      />
+      <div className="space-y-4">
+        <CriteriaItem
+          label="18 yaşından küçük olmak"
+          value={exclusion.ageUnder18}
+          onChange={(v) => setExclusion((p) => ({ ...p, ageUnder18: v }))}
+        />
 
-      <CriteriaItem
-        label="Kısıtlı olmak (asker, yükümlü)"
-        value={exclusion.restricted}
-        onChange={(v) => setExclusion((p) => ({ ...p, restricted: v }))}
-      />
+        <CriteriaItem
+          label="BGOF alınmamış gönüllüler"
+          value={exclusion.nonBgofVolunteer}
+          onChange={(v) => setExclusion((p) => ({ ...p, nonBgofVolunteer: v }))}
+        />
 
-      <CriteriaItem
-        label="Başka bir klinik çalışmada yer almak"
-        value={exclusion.baskaclinikcalismadayerolmak}
-        onChange={(v) => setExclusion((p) => ({ ...p, baskaclinikcalismadayerolmak: v }))}
-      />
+        <CriteriaItem
+          label="Kısıtlı olmak (asker, yükümlü)"
+          value={exclusion.restricted}
+          onChange={(v) => setExclusion((p) => ({ ...p, restricted: v }))}
+        />
 
-      <CriteriaItem
-        label="Tiroid bezi ile ilgili operasyon (total/subtotal tiroidektomi, lobektomi), görüntüleme eşliğinde müdahale/ablasyon veya terapötik radyoizotop tedavisi geçirmiş olmak"
-        value={exclusion.tiroidBeziIleIlgiliOperasyon}
-        onChange={(v) => setExclusion((p) => ({ ...p, tiroidBeziIleIlgiliOperasyon: v }))}
-      />
+        <CriteriaItem
+          label="Başka bir klinik çalışmada yer almak"
+          value={exclusion.baskaclinikcalismadayerolmak}
+          onChange={(v) => setExclusion((p) => ({ ...p, baskaclinikcalismadayerolmak: v }))}
+        />
 
-      <CriteriaItem
-        label="Nodül saptanmayan; yalnızca diffüz parenkimal patern değişikliği bulunan olgular"
-        value={exclusion.diffuzParenkimalOlgular}
-        onChange={(v) => setExclusion((p) => ({ ...p, diffuzParenkimalOlgular: v }))}
-      />
+        <CriteriaItem
+          label="Tiroid bezi ile ilgili operasyon (total/subtotal tiroidektomi, lobektomi), görüntüleme eşliğinde müdahale/ablasyon veya terapötik radyoizotop tedavisi geçirmiş olmak"
+          value={exclusion.tiroidBeziIleIlgiliOperasyon}
+          onChange={(v) => setExclusion((p) => ({ ...p, tiroidBeziIleIlgiliOperasyon: v }))}
+        />
 
-      <CriteriaItem
-        label="Diffüz nodüler değişiklik olup, radyolog ve/veya AI değerlendirmesi ile ayrıca demarke bir nodül tespit edilemeyen olgular"
-        value={exclusion.birNoduluTespitEdilemeyenOlgular}
-        onChange={(v) => setExclusion((p) => ({ ...p, birNoduluTespitEdilemeyenOlgular: v }))}
-      />
+        <CriteriaItem
+          label="Nodül saptanmayan; yalnızca diffüz parenkimal patern değişikliği bulunan olgular"
+          value={exclusion.diffuzParenkimalOlgular}
+          onChange={(v) => setExclusion((p) => ({ ...p, diffuzParenkimalOlgular: v }))}
+        />
+
+        <CriteriaItem
+          label="Diffüz nodüler değişiklik olup, radyolog ve/veya AI değerlendirmesi ile ayrıca demarke bir nodül tespit edilemeyen olgular"
+          value={exclusion.birNoduluTespitEdilemeyenOlgular}
+          onChange={(v) => setExclusion((p) => ({ ...p, birNoduluTespitEdilemeyenOlgular: v }))}
+        />
+      </div>
     </div>
-  </div>
-)
-
+  );
 
   const renderAIDiagnostics = () => (
     <div className="space-y-8">
@@ -1265,6 +1266,8 @@ const renderExclusionCriteria = () => (
           }
         };
         reader.readAsDataURL(file);
+      } else {
+        showError("Dosya 2.5MB'den küçük olmalıdır.");
       }
     };
 
@@ -1339,6 +1342,7 @@ const renderExclusionCriteria = () => (
       resizable={false}
     >
       <div className="p-6">
+        <Toast ref={toast} />
         <div className="mb-6">
           <Steps
             model={steps}
@@ -1359,7 +1363,7 @@ const renderExclusionCriteria = () => (
           <Button
             label={activeIndex < steps.length - 1 ? "Save and Next" : "Finish"}
             onClick={handleSaveAndNext}
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="px-6 py-2 rounded-md p-button-secondary"
           />
         </div>
       </div>
