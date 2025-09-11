@@ -5,6 +5,7 @@ import { InputText } from "primereact/inputtext"
 import { Checkbox } from "primereact/checkbox"
 import { Panel } from "primereact/panel"
 import { Toast } from 'primereact/toast';
+import LocalStoreInspector from "./LocalStoreInspector";
 
 export default function ImageAssessment() {
   const [protocolNumber, setProtocolNumber] = useState("")
@@ -120,6 +121,7 @@ export default function ImageAssessment() {
             </div>
           </div>
         </Panel>
+        <LocalStoreInspector />
         {showResults && (
           <div className="space-y-4">
             <p className="text-lg italic text-gray-900">

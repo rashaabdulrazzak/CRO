@@ -8,7 +8,7 @@ import { Button } from "primereact/button";
 import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
 import { Tag } from "primereact/tag";
-import 'primeflex/primeflex.css';
+// import 'primeflex/primeflex.css';
 // ===== Types =====
 export type User = {
   id: number;
@@ -317,7 +317,8 @@ const Users: React.FC = () => {
         responsiveLayout="scroll"
       >
         <Column field="id" header="ID" sortable style={{ width: 90 }} />
-        <Column field="name" header="Name" sortable />
+        <Column field="username" header="User Name" sortable />
+        <Column field="firstname" header="First Name" sortable />
         <Column field="surname" header="Surname" sortable />
         <Column field="email" header="Email" sortable />
         <Column field="phoneNumber" header="Phone" sortable />
@@ -350,18 +351,31 @@ const Users: React.FC = () => {
         draggable={false}
         onHide={hideDialog}
       >
-        <div className="p-fluid grid formgrid" style={{ padding: "1rem" }}>
-          <div className="field col-12 md:col-6">
-            <label htmlFor="name">Name</label>
+        <div className="flex flex-col formgrid" style={{ padding: "1rem" }}>
+          <div className="field col-12 md:col-6 mt-2">
+            <label htmlFor="username">User Name</label>
             <InputText
-              id="name"
+              id="username"
               value={editingUser?.name || ""}
               onChange={(e) =>
                 setEditingUser((u) => (u ? { ...u, name: e.target.value } : u))
               }
             />
           </div>
-          <div className="field col-12 md:col-6">
+        
+            <div className="field col-12 md:col-6 mt-2">
+            <label htmlFor="firstname">First Name</label>
+            <InputText
+              id="firstname"
+              value={editingUser?.surname || ""}
+              onChange={(e) =>
+                setEditingUser((u) =>
+                  u ? { ...u, surname: e.target.value } : u
+                )
+              }
+            />
+          </div>
+          <div className="field col-12 md:col-6 mt-2">
             <label htmlFor="surname">Surname</label>
             <InputText
               id="surname"
@@ -373,7 +387,7 @@ const Users: React.FC = () => {
               }
             />
           </div>
-          <div className="field col-12 md:col-6">
+          <div className="field col-12 md:col-6 mt-2">
             <label htmlFor="email">Email</label>
             <InputText
               id="email"
@@ -383,7 +397,7 @@ const Users: React.FC = () => {
               }
             />
           </div>
-          <div className="field col-12 md:col-6">
+          <div className="field col-12 md:col-6 mt-2">
             <label htmlFor="phone">Phone</label>
             <InputText
               id="phone"
@@ -396,21 +410,10 @@ const Users: React.FC = () => {
             />
           </div>
 
-          <div className="field col-12 md:col-6">
-            <label htmlFor="role">Role</label>
-            <Dropdown
-              id="role"
-              value={editingUser?.role || "User"}
-              options={roleOptions}
-              onChange={(e) =>
-                setEditingUser((u) => (u ? { ...u, role: e.value } : u))
-              }
-              placeholder="Select a Role"
-            />
-          </div>
+  
 
-          <div className="field col-12 md:col-6">
-            <label htmlFor="status">Status</label>
+          <div className="field col-12 md:col-6 mt-2">
+            <label htmlFor="status">User Status</label>
             <Dropdown
               id="status"
               value={editingUser?.status || "Active"}
@@ -422,57 +425,19 @@ const Users: React.FC = () => {
             />
           </div>
 
-          <div className="field col-12 md:col-6">
-            <label htmlFor="createdby">Created By</label>
-            <InputText
-              id="createdby"
-              value={editingUser?.createdby || ""}
+  <div className="field col-12 md:col-6 mt-2">
+            <label htmlFor="role">User Role</label>
+            <Dropdown
+              id="role"
+              value={editingUser?.role || "User"}
+              options={roleOptions}
               onChange={(e) =>
-                setEditingUser((u) =>
-                  u ? { ...u, createdby: e.target.value } : u
-                )
+                setEditingUser((u) => (u ? { ...u, role: e.value } : u))
               }
+              placeholder="Select a Role"
             />
           </div>
-          <div className="field col-12 md:col-6">
-            <label htmlFor="createddate">Created Date (ISO)</label>
-            <InputText
-              id="createddate"
-              placeholder="YYYY-MM-DDTHH:mm:ssZ"
-              value={editingUser?.createddate || ""}
-              onChange={(e) =>
-                setEditingUser((u) =>
-                  u ? { ...u, createddate: e.target.value } : u
-                )
-              }
-            />
-          </div>
-
-          <div className="field col-12 md:col-6">
-            <label htmlFor="modifiedby">Modified By</label>
-            <InputText
-              id="modifiedby"
-              value={editingUser?.modifiedby || ""}
-              onChange={(e) =>
-                setEditingUser((u) =>
-                  u ? { ...u, modifiedby: e.target.value } : u
-                )
-              }
-            />
-          </div>
-          <div className="field col-12 md:col-6">
-            <label htmlFor="modifiedon">Modified On (ISO)</label>
-            <InputText
-              id="modifiedon"
-              placeholder="YYYY-MM-DDTHH:mm:ssZ"
-              value={editingUser?.modifiedon || ""}
-              onChange={(e) =>
-                setEditingUser((u) =>
-                  u ? { ...u, modifiedon: e.target.value } : u
-                )
-              }
-            />
-          </div>
+        
         </div>
 
         <div
@@ -482,7 +447,7 @@ const Users: React.FC = () => {
           <Button
             label="Save"
             icon="pi pi-check"
-            className="p-button-sm  p-button-secondary"
+            className="p-button-sm p-button-secondary"
             onClick={saveUser}
           />
           <Button

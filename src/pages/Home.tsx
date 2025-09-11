@@ -381,7 +381,7 @@ const clearFilters = () => {
         />
 
         {/* ✅ Actions column with PrimeReact Buttons */}
-        <Column
+      {/*   <Column
           header="Actions"
           body={(rowData) => (
             <div className="flex gap-2">
@@ -400,7 +400,7 @@ const clearFilters = () => {
             </div>
           )}
           style={{ minWidth: "8rem" }}
-        />
+        /> */}
       </DataTable>
 
       {/* Dialog for Add/Edit */}

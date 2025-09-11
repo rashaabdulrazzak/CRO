@@ -547,6 +547,8 @@ if (activeIndex === 3) {
 
   // exactly one exclusion = exclude patient
   showError("Hariç tutma kriterlerinden biri 'Evet'. Hasta eklenemez.");
+    setActiveIndex(4);
+
   return;
 }
       // Intermediate steps (1,2,3,4): continue
@@ -554,6 +556,7 @@ if (activeIndex === 3) {
         setActiveIndex(activeIndex + 1);
         return;
       }
+      
 
       // FINAL STEP (5): require at least one image, then save everything
       if (activeIndex === 5) {
@@ -893,10 +896,10 @@ if (activeIndex === 3) {
       </div>
 
       {/* Other Information Section (optional) */}
-      <div className="mt-8">
+     {/*  <div className="mt-8">
         <h3 className="text-lg font-medium text-gray-800 mb-6">Other informations</h3>
-        {/* ... keep your questions here if needed ... */}
-      </div>
+        
+      </div> */}
     </>
   );
 

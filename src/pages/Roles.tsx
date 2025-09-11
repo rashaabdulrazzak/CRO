@@ -392,13 +392,13 @@ const Roles: React.FC = () => {
           <Button
             label="Save"
             icon="pi pi-check"
-            className="p-button-sm save-btn"
+            className="p-button-sm p-button-secondary "
             onClick={saveRole}
           />
           <Button
             label="Cancel"
             icon="pi pi-times"
-            className="p-button-sm p-button-secondary cancel-btn"
+            className="p-button-sm cancel-btn"
             onClick={hideDialog}
           />
         </div>
