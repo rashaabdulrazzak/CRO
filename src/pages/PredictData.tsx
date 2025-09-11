@@ -426,13 +426,13 @@ export default function PredictData() {
           body={statusBodyTemplate}
         />
 
-        <Column
+      {/*   <Column
           header="Actions"
           body={(rowData) => (
             <Button label="Action" text onClick={() => openAction(rowData)} />
           )}
           style={{ minWidth: "8rem" }}
-        />
+        /> */}
       </DataTable>
 
       <ActionDialog
