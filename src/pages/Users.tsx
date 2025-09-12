@@ -12,7 +12,8 @@ import { Tag } from "primereact/tag";
 // ===== Types =====
 export type User = {
   id: number;
-  name: string;
+  username: string;
+  firstname: string;
   surname?: string;
   email: string;
   phoneNumber?: string;
@@ -36,7 +37,8 @@ const statusOptions = [
 const defaultUsers: User[] = [
   {
     id: 1,
-    name: "Alice",
+    username: "Alice",
+    firstname: "Alice",
     surname: "Johnson",
     email: "alice.johnson@example.com",
     phoneNumber: "+1-555-123-4567",
@@ -49,7 +51,8 @@ const defaultUsers: User[] = [
   },
   {
     id: 2,
-    name: "Bob",
+    username: "Bob",
+    firstname: "Bob",
     surname: "Smith",
     email: "bob.smith@example.com",
     phoneNumber: "+1-555-987-6543",
@@ -62,7 +65,8 @@ const defaultUsers: User[] = [
   },
   {
     id: 3,
-    name: "Charlie",
+    username: "Charlie",
+    firstname: "Charlie",
     surname: "Brown",
     email: "charlie.brown@example.com",
     role: roleOptions[3].label,
@@ -74,7 +78,8 @@ const defaultUsers: User[] = [
   },
   {
     id: 4,
-    name: "Diana",
+    username: "Diana",
+    firstname: "Diana",
     surname: "Miller",
     email: "diana.miller@example.com",
     phoneNumber: "+1-555-246-8101",
@@ -87,7 +92,8 @@ const defaultUsers: User[] = [
   },
   {
     id: 5,
-    name: "Ethan",
+    username: "Ethan",
+    firstname: "Ethan",
     surname: "Williams",
     email: "ethan.williams@example.com",
     role: roleOptions[5].label,
@@ -192,7 +198,8 @@ const Users: React.FC = () => {
   const openNew = () => {
     setEditingUser({
       id: coalesceId(users),
-      name: "",
+      username: "",
+      firstname: "",
       surname: "",
       email: "",
       phoneNumber: "",
@@ -356,7 +363,7 @@ const Users: React.FC = () => {
             <label htmlFor="username">User Name</label>
             <InputText
               id="username"
-              value={editingUser?.name || ""}
+              value={editingUser?.username || ""}
               onChange={(e) =>
                 setEditingUser((u) => (u ? { ...u, name: e.target.value } : u))
               }
@@ -367,10 +374,10 @@ const Users: React.FC = () => {
             <label htmlFor="firstname">First Name</label>
             <InputText
               id="firstname"
-              value={editingUser?.surname || ""}
+              value={editingUser?.firstname || ""}
               onChange={(e) =>
                 setEditingUser((u) =>
-                  u ? { ...u, surname: e.target.value } : u
+                  u ? { ...u, firstname: e.target.value } : u
                 )
               }
             />

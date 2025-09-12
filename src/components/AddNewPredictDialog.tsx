@@ -169,32 +169,19 @@ const calcAgeFromDate = (d: Date | null): number | null => {
 // TIRADS (simple rules)
 const computeTirads = (ai: AIDiag) => {
   let pts = 0;
-  // Composition
   if (ai.composition.solid) pts += 2;
   else if (ai.composition.mixed) pts += 1;
-  // Echogenicity
   if (ai.echogenicity.hyperechoic) pts += 1;
   if (ai.echogenicity.hypoechoic) pts += 2;
   if (ai.echogenicity.veryHypoechoic) pts += 3;
-  // Shape
   if (ai.shape.tallerThanWide) pts += 3;
-  // Margin
   if (ai.margin.lobular) pts += 2;
   if (ai.margin.extraThyroidal) pts += 3;
-  // Echogenic foci
   if (ai.echogenicFocii.macrocalcifications) pts += 1;
   if (ai.echogenicFocii.peripheral) pts += 2;
   if (ai.echogenicFocii.punctate) pts += 3;
   const category =
-    pts >= 7
-      ? "TR5"
-      : pts >= 4
-      ? "TR4"
-      : pts === 3
-      ? "TR3"
-      : pts >= 1
-      ? "TR2"
-      : "TR1";
+    pts >= 7 ? "TR5" : pts >= 4 ? "TR4" : pts === 3 ? "TR3" : pts >= 1 ? "TR2" : "TR1";
   return { points: pts, category };
 };
 
@@ -281,39 +268,18 @@ export const AddNewPredictDialog: React.FC<AddNewPredictDialogProps> = ({
 
   const initialAI: AIDiag = useMemo(
     () => ({
-      composition: {
-        cystic: true,
-        solid: false,
-        mixed: true,
-        spongioform: false,
-      },
-      echogenicity: {
-        anechoic: true,
-        hyperechoic: false,
-        hypoechoic: true,
-        veryHypoechoic: false,
-      },
+      composition: { cystic: true, solid: false, mixed: true, spongioform: false },
+      echogenicity: { anechoic: true, hyperechoic: false, hypoechoic: true, veryHypoechoic: false },
       shape: { widerThanTall: true, tallerThanWide: false },
-      margin: {
-        smooth: true,
-        illDefined: false,
-        lobular: true,
-        extraThyroidal: false,
-      },
-      echogenicFocii: {
-        noneOrLarge: true,
-        macrocalcifications: false,
-        peripheral: true,
-        punctate: false,
-      },
+      margin: { smooth: true, illDefined: false, lobular: true, extraThyroidal: false },
+      echogenicFocii: { noneOrLarge: true, macrocalcifications: false, peripheral: true, punctate: false },
     }),
     []
   );
 
   // ---- state
   const draftKey = "app.addPredictDraft";
-  const [demographic, setDemographic] =
-    useState<DemographicForm>(initialDemographic);
+  const [demographic, setDemographic] = useState<DemographicForm>(initialDemographic);
   const [medical, setMedical] = useState<MedicalHistoryForm>(initialMed);
   const [inclusion, setInclusion] = useState<InclusionForm>(initialInc);
   const [exclusion, setExclusion] = useState<ExclusionForm>(initialExc);
@@ -358,17 +324,7 @@ export const AddNewPredictDialog: React.FC<AddNewPredictDialogProps> = ({
       patientId,
       caseId,
     });
-  }, [
-    activeIndex,
-    demographic,
-    medical,
-    inclusion,
-    exclusion,
-    ai,
-    uploadedPhotos,
-    patientId,
-    caseId,
-  ]);
+  }, [activeIndex, demographic, medical, inclusion, exclusion, ai, uploadedPhotos, patientId, caseId]);
 
   // ---- localStorage “collections”
   const patientsKey = "app.patients";
@@ -376,51 +332,27 @@ export const AddNewPredictDialog: React.FC<AddNewPredictDialogProps> = ({
   const formsKey = "app.forms";
   const uploadsKey = "app.uploads";
 
-  const createPatientLocal = (
-    payload: Omit<LSPatient, "id" | "createdAt">
-  ): LSPatient => {
+  const createPatientLocal = (payload: Omit<LSPatient, "id" | "createdAt">): LSPatient => {
     const list = lsGet<LSPatient[]>(patientsKey, []);
-    const p: LSPatient = {
-      id: nextId(list),
-      createdAt: new Date().toISOString(),
-      ...payload,
-    };
+    const p: LSPatient = { id: nextId(list), createdAt: new Date().toISOString(), ...payload };
     lsSet(patientsKey, [...list, p]);
     return p;
   };
-  const createCaseLocal = (
-    payload: Omit<LSCase, "id" | "createdAt">
-  ): LSCase => {
+  const createCaseLocal = (payload: Omit<LSCase, "id" | "createdAt">): LSCase => {
     const list = lsGet<LSCase[]>(casesKey, []);
-    const c: LSCase = {
-      id: nextId(list),
-      createdAt: new Date().toISOString(),
-      ...payload,
-    };
+    const c: LSCase = { id: nextId(list), createdAt: new Date().toISOString(), ...payload };
     lsSet(casesKey, [...list, c]);
     return c;
   };
-  const createUploadLocal = (
-    payload: Omit<LSUpload, "id" | "createdAt">
-  ): LSUpload => {
+  const createUploadLocal = (payload: Omit<LSUpload, "id" | "createdAt">): LSUpload => {
     const list = lsGet<LSUpload[]>(uploadsKey, []);
-    const u: LSUpload = {
-      id: nextId(list),
-      createdAt: new Date().toISOString(),
-      ...payload,
-    };
+    const u: LSUpload = { id: nextId(list), createdAt: new Date().toISOString(), ...payload };
     lsSet(uploadsKey, [...list, u]);
     return u;
   };
-  const createFormLocal = (
-    payload: Omit<LSForm, "id" | "createdAt">
-  ): LSForm => {
+  const createFormLocal = (payload: Omit<LSForm, "id" | "createdAt">): LSForm => {
     const list = lsGet<LSForm[]>(formsKey, []);
-    const f: LSForm = {
-      id: nextId(list),
-      createdAt: new Date().toISOString(),
-      ...payload,
-    };
+    const f: LSForm = { id: nextId(list), createdAt: new Date().toISOString(), ...payload };
     lsSet(formsKey, [...list, f]);
     return f;
   };
@@ -435,15 +367,15 @@ export const AddNewPredictDialog: React.FC<AddNewPredictDialogProps> = ({
     { label: "Upload Photo" },
   ];
 
+  // Role per step (from protocol)
+  const stepRole = ["Hekim", "Koordinatör", "Hekim", "Hekim", "Koordinatör", "Hekim"] as const;
+
   const referralOptions = [
     { label: "Radiology Clinic", value: "Radiology Clinic" },
     { label: "Emergency Department", value: "Emergency Department" },
     { label: "General Practice", value: "General Practice" },
   ];
-  const yearsOptions = ["1", "2", "3", "4", "5"].map((v) => ({
-    label: v,
-    value: v,
-  }));
+  const yearsOptions = ["1", "2", "3", "4", "5"].map((v) => ({ label: v, value: v }));
 
   // ================== ACTIONS ==================
   const handleDialogClose = () => {
@@ -466,18 +398,16 @@ export const AddNewPredictDialog: React.FC<AddNewPredictDialogProps> = ({
 
   const generateVolunteerId = () => {
     const next = getNextImageNumber();
-    setDemographic((prev) => ({
-      ...prev,
-      volunteerCode: normalizeVolunteerCode(next),
-    }));
+    setDemographic((prev) => ({ ...prev, volunteerCode: normalizeVolunteerCode(next) }));
   };
 
+  const toastRef = toast;
   const showError = (detail: string) =>
-    toast.current?.show({ severity: "error", summary: "Hata", detail, life: 3000 });
+    toastRef.current?.show({ severity: "error", summary: "Hata", detail, life: 3000 });
   const showInfo = (detail: string) =>
-    toast.current?.show({ severity: "info", summary: "Bilgi", detail, life: 2000 });
+    toastRef.current?.show({ severity: "info", summary: "Bilgi", detail, life: 2000 });
   const showSuccess = (detail: string) =>
-    toast.current?.show({ severity: "success", summary: "Başarılı", detail, life: 2500 });
+    toastRef.current?.show({ severity: "success", summary: "Başarılı", detail, life: 2500 });
 
   const handleSaveAndNext = async () => {
     try {
@@ -492,16 +422,11 @@ export const AddNewPredictDialog: React.FC<AddNewPredictDialogProps> = ({
           showError("Name Surname zorunludur.");
           return;
         }
-        // persist normalized code
         setDemographic((prev) => ({ ...prev, volunteerCode: code }));
 
         const age = calcAgeFromDate(demographic.birthDate);
         const sex =
-          demographic.gender === "male"
-            ? "male"
-            : demographic.gender === "female"
-            ? "female"
-            : undefined;
+          demographic.gender === "male" ? "male" : demographic.gender === "female" ? "female" : undefined;
 
         const localPatient = createPatientLocal({
           code,
@@ -512,51 +437,46 @@ export const AddNewPredictDialog: React.FC<AddNewPredictDialogProps> = ({
         setPatientId(localPatient.id);
 
         if (USE_BACKEND) {
-          await api("/patients", "POST", {
-            name: demographic.nameSurname.trim(),
-            age,
-            sex,
-            code,
-          });
+          await api("/patients", "POST", { name: demographic.nameSurname.trim(), age, sex, code });
         }
         setActiveIndex(1);
         showInfo("Hasta oluşturuldu.");
         return;
       }
 
-      // STEP 2 (Inclusion): require ALL true
-   if (activeIndex === 2) {
-   const allTrue = Object.values(inclusion).every((v) => v === true);
-      if (!allTrue) {
-        showError("Dahil etme kriterlerinin tamamı 'Evet' olmalıdır. Hasta eklenemez.");
-        return;
+      // STEP 2 (Inclusion): ALL must be true; also ensure all answered
+      if (activeIndex === 2) {
+        const values = Object.values(inclusion);
+        if (values.some((v) => v === null)) {
+          showError("Lütfen tüm dahil etme kriterlerini yanıtlayın.");
+          return;
+        }
+        const allTrue = values.every((v) => v === true);
+        if (!allTrue) {
+          showError("Dahil etme kriterlerinin tamamı 'Evet' olmalıdır. Hasta eklenemez.");
+          return;
+        }
       }
-    }
 
-      // STEP 3 (Exclusion): block if ANY true
-if (activeIndex === 3) {
-  const bools = Object.values(exclusion);
-  console.log("bools:", bools);
-  const trueCount = bools.filter(Boolean).length;
-  console.log("Exclusion true count:", trueCount);
+      // STEP 3 (Exclusion): ANY true means exclude; ensure all answered
+      if (activeIndex === 3) {
+        const values = Object.values(exclusion);
+        if (values.some((v) => v === null)) {
+          showError("Lütfen tüm hariç tutma kriterlerini yanıtlayın.");
+          return;
+        }
+        const anyTrue = values.some((v) => v === true);
+        if (anyTrue) {
+          showError("Hariç tutma kriterlerinden biri veya daha fazlası 'Evet'. Hasta eklenemez.");
+          return;
+        }
+      }
 
-  if (trueCount === 0) {
-    showError("Hariç tutma kriterlerinde tam olarak bir tanesi 'Evet' olmalı; diğerlerinin hepsi 'Hayır' olmalıdır.");
-    return;
-  }
-
-  // exactly one exclusion = exclude patient
-  showError("Hariç tutma kriterlerinden biri 'Evet'. Hasta eklenemez.");
-    setActiveIndex(4);
-
-  return;
-}
       // Intermediate steps (1,2,3,4): continue
       if (activeIndex > 0 && activeIndex < 5) {
         setActiveIndex(activeIndex + 1);
         return;
       }
-      
 
       // FINAL STEP (5): require at least one image, then save everything
       if (activeIndex === 5) {
@@ -586,11 +506,7 @@ if (activeIndex === 3) {
             : uploadedPhotos[i] || `local://${imgId}`;
           createUploadLocal({ caseId: localCase.id, kind: "USG", url });
           if (USE_BACKEND) {
-            await api(`/uploads/cases/${localCase.id}`, "POST", {
-              kind: "USG",
-              url,
-              createdByUserId: 1,
-            });
+            await api(`/uploads/cases/${localCase.id}`, "POST", { kind: "USG", url, createdByUserId: 1 });
           }
         }
 
@@ -598,9 +514,7 @@ if (activeIndex === 3) {
         const visitPayload = {
           volunteerCode: base,
           protocolNo: demographic.protocolNo,
-          visitDate: demographic.visitDate
-            ? demographic.visitDate.toISOString().split("T")[0]
-            : null,
+          visitDate: demographic.visitDate ? demographic.visitDate.toISOString().split("T")[0] : null,
           secondVisitDate: demographic.secondVisitDate
             ? demographic.secondVisitDate.toISOString().split("T")[0]
             : null,
@@ -617,12 +531,7 @@ if (activeIndex === 3) {
             q5: demographic.question5,
           },
         };
-        createFormLocal({
-          caseId: localCase.id,
-          type: "CRF01-visit",
-          version: "v1",
-          data: visitPayload,
-        });
+        createFormLocal({ caseId: localCase.id, type: "CRF01-visit", version: "v1", data: visitPayload });
         if (USE_BACKEND) {
           await api(`/forms/cases/${localCase.id}`, "POST", {
             type: "CRF01-visit",
@@ -634,12 +543,7 @@ if (activeIndex === 3) {
 
         // Eligibility form (medical + inclusion + exclusion)
         const eligibilityPayload = { medicalHistory: medical, inclusion, exclusion };
-        createFormLocal({
-          caseId: localCase.id,
-          type: "CRF01-eligibility",
-          version: "v1",
-          data: eligibilityPayload,
-        });
+        createFormLocal({ caseId: localCase.id, type: "CRF01-eligibility", version: "v1", data: eligibilityPayload });
         if (USE_BACKEND) {
           await api(`/forms/cases/${localCase.id}`, "POST", {
             type: "CRF01-eligibility",
@@ -652,12 +556,7 @@ if (activeIndex === 3) {
         // AI form with TIRADS
         const tirads = computeTirads(ai);
         const aiPayload = { ...ai, tirads };
-        createFormLocal({
-          caseId: localCase.id,
-          type: "CRF01-ai",
-          version: "v1",
-          data: aiPayload,
-        });
+        createFormLocal({ caseId: localCase.id, type: "CRF01-ai", version: "v1", data: aiPayload });
         if (USE_BACKEND) {
           await api(`/forms/cases/${localCase.id}`, "POST", {
             type: "CRF01-ai",
@@ -693,11 +592,7 @@ if (activeIndex === 3) {
       case 5:
         return renderUploadPhoto();
       default:
-        return (
-          <div className="text-center py-8 text-gray-500">
-            Step content coming soon...
-          </div>
-        );
+        return <div className="text-center py-8 text-gray-500">Step content coming soon...</div>;
     }
   };
 
@@ -707,31 +602,19 @@ if (activeIndex === 3) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Volunteer ID + Generate */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Volunteer ID (Gönüllü No)
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Volunteer ID (Gönüllü No)</label>
           <div className="flex gap-2">
             <InputText
               id="volunteerId"
               value={demographic.volunteerCode}
-              onChange={(e) =>
-                setDemographic((prev) => ({ ...prev, volunteerCode: e.target.value }))
-              }
+              onChange={(e) => setDemographic((prev) => ({ ...prev, volunteerCode: e.target.value }))}
               onBlur={(e) =>
-                setDemographic((prev) => ({
-                  ...prev,
-                  volunteerCode: normalizeVolunteerCode(e.target.value),
-                }))
+                setDemographic((prev) => ({ ...prev, volunteerCode: normalizeVolunteerCode(e.target.value) }))
               }
               placeholder="e.g., TR00001"
               className="w-full"
             />
-            <Button
-              type="button"
-              label="Generate"
-              onClick={generateVolunteerId}
-              className="shrink-0"
-            />
+            <Button type="button" label="Generate" onClick={generateVolunteerId} className="shrink-0" />
           </div>
           <small className="text-gray-500">Format: TR + 5 digits (TR00001)</small>
         </div>
@@ -741,23 +624,17 @@ if (activeIndex === 3) {
           <label className="block text-sm font-medium text-gray-700 mb-2">Protocol No</label>
           <InputText
             value={demographic.protocolNo}
-            onChange={(e) =>
-              setDemographic((prev) => ({ ...prev, protocolNo: e.target.value }))
-            }
+            onChange={(e) => setDemographic((prev) => ({ ...prev, protocolNo: e.target.value }))}
             className="w-full"
           />
         </div>
 
         {/* First Visit Date */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            First Visit Date (USG)
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">First Visit Date (USG)</label>
           <Calendar
             value={demographic.visitDate}
-            onChange={(e) =>
-              setDemographic((prev) => ({ ...prev, visitDate: (e.value as Date) ?? null }))
-            }
+            onChange={(e) => setDemographic((prev) => ({ ...prev, visitDate: (e.value as Date) ?? null }))}
             className="w-full"
             inputClassName="w-full"
             showIcon
@@ -769,9 +646,7 @@ if (activeIndex === 3) {
           <label className="block text-sm font-medium text-gray-700 mb-2">Name Surname</label>
           <InputText
             value={demographic.nameSurname}
-            onChange={(e) =>
-              setDemographic((prev) => ({ ...prev, nameSurname: e.target.value }))
-            }
+            onChange={(e) => setDemographic((prev) => ({ ...prev, nameSurname: e.target.value }))}
             placeholder="Name Surname"
             className="w-full"
           />
@@ -782,9 +657,7 @@ if (activeIndex === 3) {
           <label className="block text-sm font-medium text-gray-700 mb-2">Birth Date</label>
           <Calendar
             value={demographic.birthDate}
-            onChange={(e) =>
-              setDemographic((prev) => ({ ...prev, birthDate: (e.value as Date) ?? null }))
-            }
+            onChange={(e) => setDemographic((prev) => ({ ...prev, birthDate: (e.value as Date) ?? null }))}
             className="w-full"
             inputClassName="w-full"
             showIcon
@@ -793,16 +666,11 @@ if (activeIndex === 3) {
 
         {/* Second Visit Date */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Second Visit Date (Pathology)
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Second Visit Date (Pathology)</label>
           <Calendar
             value={demographic.secondVisitDate}
             onChange={(e) =>
-              setDemographic((prev) => ({
-                ...prev,
-                secondVisitDate: (e.value as Date) ?? null,
-              }))
+              setDemographic((prev) => ({ ...prev, secondVisitDate: (e.value as Date) ?? null }))
             }
             className="w-full"
             inputClassName="w-full"
@@ -815,9 +683,7 @@ if (activeIndex === 3) {
           <label className="block text-sm font-medium text-gray-700 mb-2">Body Mass Index</label>
           <InputText
             value={demographic.bodyMassIndex}
-            onChange={(e) =>
-              setDemographic((prev) => ({ ...prev, bodyMassIndex: e.target.value }))
-            }
+            onChange={(e) => setDemographic((prev) => ({ ...prev, bodyMassIndex: e.target.value }))}
             className="w-full"
           />
         </div>
@@ -827,9 +693,7 @@ if (activeIndex === 3) {
           <label className="block text-sm font-medium text-gray-700 mb-2">USG Device / Probe</label>
           <InputText
             value={demographic.usgDevice}
-            onChange={(e) =>
-              setDemographic((prev) => ({ ...prev, usgDevice: e.target.value }))
-            }
+            onChange={(e) => setDemographic((prev) => ({ ...prev, usgDevice: e.target.value }))}
             placeholder="e.g., Brand Model, Probe MHz"
             className="w-full"
           />
@@ -841,9 +705,7 @@ if (activeIndex === 3) {
           <Dropdown
             value={demographic.referredFrom}
             options={referralOptions}
-            onChange={(e) =>
-              setDemographic((prev) => ({ ...prev, referredFrom: e.value }))
-            }
+            onChange={(e) => setDemographic((prev) => ({ ...prev, referredFrom: e.value }))}
             className="w-full"
             panelClassName="mt-1"
           />
@@ -854,9 +716,7 @@ if (activeIndex === 3) {
           <label className="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
           <InputText
             value={demographic.weight}
-            onChange={(e) =>
-              setDemographic((prev) => ({ ...prev, weight: e.target.value }))
-            }
+            onChange={(e) => setDemographic((prev) => ({ ...prev, weight: e.target.value }))}
             className="w-full"
           />
         </div>
@@ -881,9 +741,7 @@ if (activeIndex === 3) {
                   inputId={`gender-${val}`}
                   name="gender"
                   value={val}
-                  onChange={(e) =>
-                    setDemographic((prev) => ({ ...prev, gender: e.value }))
-                  }
+                  onChange={(e) => setDemographic((prev) => ({ ...prev, gender: e.value }))}
                   checked={demographic.gender === val}
                 />
                 <label htmlFor={`gender-${val}`} className="ml-2 text-sm text-gray-700">
@@ -894,12 +752,6 @@ if (activeIndex === 3) {
           </div>
         </div>
       </div>
-
-      {/* Other Information Section (optional) */}
-     {/*  <div className="mt-8">
-        <h3 className="text-lg font-medium text-gray-800 mb-6">Other informations</h3>
-        
-      </div> */}
     </>
   );
 
@@ -918,15 +770,10 @@ if (activeIndex === 3) {
                 inputId={`mq1-${val}`}
                 name="medicalQuestion1"
                 value={val}
-                onChange={(e) =>
-                  setMedical((prev) => ({ ...prev, medicalQuestion1: e.value }))
-                }
+                onChange={(e) => setMedical((prev) => ({ ...prev, medicalQuestion1: e.value }))}
                 checked={medical.medicalQuestion1 === val}
               />
-              <label
-                htmlFor={`mq1-${val}`}
-                className="ml-2 text-sm text-gray-700 capitalize"
-              >
+              <label htmlFor={`mq1-${val}`} className="ml-2 text-sm text-gray-700 capitalize">
                 {val}
               </label>
             </div>
@@ -936,15 +783,11 @@ if (activeIndex === 3) {
 
       {/* years */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          How many years?
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">How many years?</label>
         <Dropdown
           value={medical.howManyYears}
           options={yearsOptions}
-          onChange={(e) =>
-            setMedical((prev) => ({ ...prev, howManyYears: e.value }))
-          }
+          onChange={(e) => setMedical((prev) => ({ ...prev, howManyYears: e.value }))}
           className="w-48"
           panelClassName="mt-1"
         />
@@ -965,17 +808,11 @@ if (activeIndex === 3) {
                   name={`medicalQuestion${n}`}
                   value={val}
                   onChange={(e) =>
-                    setMedical((prev) => ({
-                      ...prev,
-                      [`medicalQuestion${n}`]: e.value as YesNo,
-                    }))
+                    setMedical((prev) => ({ ...prev, [`medicalQuestion${n}`]: e.value as YesNo }))
                   }
                   checked={(medical as any)[`medicalQuestion${n}`] === val}
                 />
-                <label
-                  htmlFor={`mq${n}-${val}`}
-                  className="ml-2 text-sm text-gray-700 capitalize"
-                >
+                <label htmlFor={`mq${n}-${val}`} className="ml-2 text-sm text-gray-700 capitalize">
                   {val}
                 </label>
               </div>
@@ -986,14 +823,10 @@ if (activeIndex === 3) {
 
       {/* disease type */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Disease type
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Disease type</label>
         <InputText
           value={medical.diseaseType}
-          onChange={(e) =>
-            setMedical((prev) => ({ ...prev, diseaseType: e.target.value }))
-          }
+          onChange={(e) => setMedical((prev) => ({ ...prev, diseaseType: e.target.value }))}
           placeholder="Disease type"
           className="w-full max-w-sm p-3 border border-gray-300 rounded-md"
         />
@@ -1005,30 +838,15 @@ if (activeIndex === 3) {
     <div className="bg-white border border-gray-200 rounded-lg p-6">
       <h2 className="text-xl font-semibold text-gray-900 mb-2">Dahil Etme Kriterleri</h2>
       <p className="text-sm text-gray-600 mb-6">
-        Aşağıdaki kriterlerin hepsinin işaretlenmesi gönüllünün dahil edilme kriterlerini karşıladığını göstermektedir.
+        Aşağıdaki kriterlerin hepsinin işaretlenmesi gönüllünün dahil edilme kriterlerini karşıladığını
+        göstermektedir.
       </p>
 
       <div className="space-y-4">
-        <CriteriaItem
-          label="18 yaşından büyük"
-          value={inclusion.ageOver18}
-          onChange={(v) => setInclusion((p) => ({ ...p, ageOver18: v }))}
-        />
-        <CriteriaItem
-          label="Tiroid nodülü şüphesi taşımak"
-          value={inclusion.thyroidNoduleSuspicion}
-          onChange={(v) => setInclusion((p) => ({ ...p, thyroidNoduleSuspicion: v }))}
-        />
-        <CriteriaItem
-          label="BGOF alınmış gönüllü"
-          value={inclusion.bgofVolunteer}
-          onChange={(v) => setInclusion((p) => ({ ...p, bgofVolunteer: v }))}
-        />
-        <CriteriaItem
-          label="Kısıtlı olmamak (asker, yükümlü)"
-          value={inclusion.notRestricted}
-          onChange={(v) => setInclusion((p) => ({ ...p, notRestricted: v }))}
-        />
+        <CriteriaItem label="18 yaşından büyük" value={inclusion.ageOver18} onChange={(v) => setInclusion((p) => ({ ...p, ageOver18: v }))} />
+        <CriteriaItem label="Tiroid nodülü şüphesi taşımak" value={inclusion.thyroidNoduleSuspicion} onChange={(v) => setInclusion((p) => ({ ...p, thyroidNoduleSuspicion: v }))} />
+        <CriteriaItem label="BGOF alınmış gönüllü" value={inclusion.bgofVolunteer} onChange={(v) => setInclusion((p) => ({ ...p, bgofVolunteer: v }))} />
+        <CriteriaItem label="Kısıtlı olmamak (asker, yükümlü)" value={inclusion.notRestricted} onChange={(v) => setInclusion((p) => ({ ...p, notRestricted: v }))} />
       </div>
     </div>
   );
@@ -1041,47 +859,13 @@ if (activeIndex === 3) {
       </p>
 
       <div className="space-y-4">
-        <CriteriaItem
-          label="18 yaşından küçük olmak"
-          value={exclusion.ageUnder18}
-          onChange={(v) => setExclusion((p) => ({ ...p, ageUnder18: v }))}
-        />
-
-        <CriteriaItem
-          label="BGOF alınmamış gönüllüler"
-          value={exclusion.nonBgofVolunteer}
-          onChange={(v) => setExclusion((p) => ({ ...p, nonBgofVolunteer: v }))}
-        />
-
-        <CriteriaItem
-          label="Kısıtlı olmak (asker, yükümlü)"
-          value={exclusion.restricted}
-          onChange={(v) => setExclusion((p) => ({ ...p, restricted: v }))}
-        />
-
-        <CriteriaItem
-          label="Başka bir klinik çalışmada yer almak"
-          value={exclusion.baskaclinikcalismadayerolmak}
-          onChange={(v) => setExclusion((p) => ({ ...p, baskaclinikcalismadayerolmak: v }))}
-        />
-
-        <CriteriaItem
-          label="Tiroid bezi ile ilgili operasyon (total/subtotal tiroidektomi, lobektomi), görüntüleme eşliğinde müdahale/ablasyon veya terapötik radyoizotop tedavisi geçirmiş olmak"
-          value={exclusion.tiroidBeziIleIlgiliOperasyon}
-          onChange={(v) => setExclusion((p) => ({ ...p, tiroidBeziIleIlgiliOperasyon: v }))}
-        />
-
-        <CriteriaItem
-          label="Nodül saptanmayan; yalnızca diffüz parenkimal patern değişikliği bulunan olgular"
-          value={exclusion.diffuzParenkimalOlgular}
-          onChange={(v) => setExclusion((p) => ({ ...p, diffuzParenkimalOlgular: v }))}
-        />
-
-        <CriteriaItem
-          label="Diffüz nodüler değişiklik olup, radyolog ve/veya AI değerlendirmesi ile ayrıca demarke bir nodül tespit edilemeyen olgular"
-          value={exclusion.birNoduluTespitEdilemeyenOlgular}
-          onChange={(v) => setExclusion((p) => ({ ...p, birNoduluTespitEdilemeyenOlgular: v }))}
-        />
+        <CriteriaItem label="18 yaşından küçük olmak" value={exclusion.ageUnder18} onChange={(v) => setExclusion((p) => ({ ...p, ageUnder18: v }))} />
+        <CriteriaItem label="BGOF alınmamış gönüllüler" value={exclusion.nonBgofVolunteer} onChange={(v) => setExclusion((p) => ({ ...p, nonBgofVolunteer: v }))} />
+        <CriteriaItem label="Kısıtlı olmak (asker, yükümlü)" value={exclusion.restricted} onChange={(v) => setExclusion((p) => ({ ...p, restricted: v }))} />
+        <CriteriaItem label="Başka bir klinik çalışmada yer almak" value={exclusion.baskaclinikcalismadayerolmak} onChange={(v) => setExclusion((p) => ({ ...p, baskaclinikcalismadayerolmak: v }))} />
+        <CriteriaItem label="Tiroid bezi ile ilgili operasyon (total/subtotal tiroidektomi, lobektomi), görüntüleme eşliğinde müdahale/ablasyon veya terapötik radyoizotop tedavisi geçirmiş olmak" value={exclusion.tiroidBeziIleIlgiliOperasyon} onChange={(v) => setExclusion((p) => ({ ...p, tiroidBeziIleIlgiliOperasyon: v }))} />
+        <CriteriaItem label="Nodül saptanmayan; yalnızca diffüz parenkimal patern değişikliği bulunan olgular" value={exclusion.diffuzParenkimalOlgular} onChange={(v) => setExclusion((p) => ({ ...p, diffuzParenkimalOlgular: v }))} />
+        <CriteriaItem label="Diffüz nodüler değişiklik olup, radyolog ve/veya AI değerlendirmesi ile ayrıca demarke bir nodül tespit edilemeyen olgular" value={exclusion.birNoduluTespitEdilemeyenOlgular} onChange={(v) => setExclusion((p) => ({ ...p, birNoduluTespitEdilemeyenOlgular: v }))} />
       </div>
     </div>
   );
@@ -1109,10 +893,7 @@ if (activeIndex === 3) {
                   }))
                 }
               />
-              <label
-                htmlFor={`comp-${key}`}
-                className="text-sm text-gray-700 flex items-center gap-2"
-              >
+              <label htmlFor={`comp-${key}`} className="text-sm text-gray-700 flex items-center gap-2">
                 {label}
               </label>
             </div>
@@ -1135,16 +916,10 @@ if (activeIndex === 3) {
                 inputId={`echo-${key}`}
                 checked={(ai.echogenicity as any)[key]}
                 onChange={(e) =>
-                  setAi((prev) => ({
-                    ...prev,
-                    echogenicity: { ...prev.echogenicity, [key]: e.checked },
-                  }))
+                  setAi((prev) => ({ ...prev, echogenicity: { ...prev.echogenicity, [key]: e.checked } }))
                 }
               />
-              <label
-                htmlFor={`echo-${key}`}
-                className="text-sm text-gray-700 flex items-center gap-2"
-              >
+              <label htmlFor={`echo-${key}`} className="text-sm text-gray-700 flex items-center gap-2">
                 {label}
               </label>
             </div>
@@ -1165,16 +940,10 @@ if (activeIndex === 3) {
                 inputId={`shape-${key}`}
                 checked={(ai.shape as any)[key]}
                 onChange={(e) =>
-                  setAi((prev) => ({
-                    ...prev,
-                    shape: { ...prev.shape, [key]: e.checked },
-                  }))
+                  setAi((prev) => ({ ...prev, shape: { ...prev.shape, [key]: e.checked } }))
                 }
               />
-              <label
-                htmlFor={`shape-${key}`}
-                className="text-sm text-gray-700 flex items-center gap-2"
-              >
+              <label htmlFor={`shape-${key}`} className="text-sm text-gray-700 flex items-center gap-2">
                 {label}
               </label>
             </div>
@@ -1197,16 +966,10 @@ if (activeIndex === 3) {
                 inputId={`margin-${key}`}
                 checked={(ai.margin as any)[key]}
                 onChange={(e) =>
-                  setAi((prev) => ({
-                    ...prev,
-                    margin: { ...prev.margin, [key]: e.checked },
-                  }))
+                  setAi((prev) => ({ ...prev, margin: { ...prev.margin, [key]: e.checked } }))
                 }
               />
-              <label
-                htmlFor={`margin-${key}`}
-                className="text-sm text-gray-700 flex items-center gap-2"
-              >
+              <label htmlFor={`margin-${key}`} className="text-sm text-gray-700 flex items-center gap-2">
                 {label}
               </label>
             </div>
@@ -1216,9 +979,7 @@ if (activeIndex === 3) {
 
       {/* Echogenic Focii */}
       <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4">
-          Echogenic Focii
-        </h3>
+        <h3 className="text-lg font-medium text-gray-800 mb-4">Echogenic Focii</h3>
         <div className="space-y-3">
           {[
             ["noneOrLarge", "None or Large Comet Tail Artifacts"],
@@ -1233,17 +994,11 @@ if (activeIndex === 3) {
                 onChange={(e) =>
                   setAi((prev) => ({
                     ...prev,
-                    echogenicFocii: {
-                      ...prev.echogenicFocii,
-                      [key]: e.checked,
-                    },
+                    echogenicFocii: { ...prev.echogenicFocii, [key]: e.checked },
                   }))
                 }
               />
-              <label
-                htmlFor={`foci-${key}`}
-                className="text-sm text-gray-700 flex items-center gap-2"
-              >
+              <label htmlFor={`foci-${key}`} className="text-sm text-gray-700 flex items-center gap-2">
                 {label}
               </label>
             </div>
@@ -1262,10 +1017,7 @@ if (activeIndex === 3) {
         const reader = new FileReader();
         reader.onload = (event) => {
           if (event.target?.result) {
-            setUploadedPhotos((prev) => [
-              ...prev,
-              event.target!.result as string,
-            ]);
+            setUploadedPhotos((prev) => [...prev, event.target!.result as string]);
           }
         };
         reader.readAsDataURL(file);
@@ -1277,26 +1029,16 @@ if (activeIndex === 3) {
     return (
       <div className="space-y-6">
         <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Upload Photo
-          </h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Upload Photo</h3>
           <p className="text-sm text-gray-600 mb-6">
-            File must be less than 2.5 MB, and file format must be either JPEG,
-            JPG or PNG.
+            File must be less than 2.5 MB, and file format must be either JPEG, JPG or PNG.
           </p>
         </div>
 
         <div className="flex gap-4 flex-wrap">
           {uploadedPhotos.map((photo, index) => (
-            <div
-              key={index}
-              className="w-32 h-32 border border-gray-200 rounded-lg overflow-hidden"
-            >
-              <img
-                src={photo || "/placeholder.svg"}
-                alt={`Uploaded photo ${index + 1}`}
-                className="w-full h-full object-cover"
-              />
+            <div key={index} className="w-32 h-32 border border-gray-200 rounded-lg overflow-hidden">
+              <img src={photo || "/placeholder.svg"} alt={`Uploaded photo ${index + 1}`} className="w-full h-full object-cover" />
             </div>
           ))}
 
@@ -1323,10 +1065,7 @@ if (activeIndex === 3) {
   // ================== SHELL ==================
   const headerElement = (
     <div className="flex items-center gap-3">
-      <button
-        onClick={handleDialogClose}
-        className="text-gray-500 hover:text-gray-700 text-xl"
-      >
+      <button onClick={handleDialogClose} className="text-gray-500 hover:text-gray-700 text-xl">
         ×
       </button>
       <span className="text-lg font-medium text-gray-800">Add New Predict</span>
@@ -1346,12 +1085,21 @@ if (activeIndex === 3) {
     >
       <div className="p-6">
         <Toast ref={toast} />
+
+        {/* Steps + Role badge */}
+        <div className="mb-2">
+          <Steps model={steps} activeIndex={activeIndex} className="custom-steps" />
+        </div>
         <div className="mb-6">
-          <Steps
-            model={steps}
-            activeIndex={activeIndex}
-            className="custom-steps"
-          />
+          <span
+            className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium ${
+              stepRole[activeIndex] === "Hekim"
+                ? "border-blue-300 text-blue-700 bg-blue-50"
+                : "border-amber-300 text-amber-700 bg-amber-50"
+            }`}
+          >
+            Role: {stepRole[activeIndex]}
+          </span>
         </div>
 
         {renderStepContent()}
