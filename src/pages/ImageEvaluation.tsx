@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../components/AuthContext';
-import { useNavigate } from 'react-router-dom';
+//import { useNavigate } from 'react-router-dom';
 import { Button } from 'primereact/button';
 import { InputText } from 'primereact/inputtext';
 import { Card } from 'primereact/card';
@@ -12,7 +12,7 @@ import { Toast } from 'primereact/toast';
 
 export default function ImageEvaluation() {
   const { user } = useAuth();
-  const navigate = useNavigate();
+ // const navigate = useNavigate();
   const [searchId, setSearchId] = useState('');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [patients, setPatients] = useState<Patient[]>([]);

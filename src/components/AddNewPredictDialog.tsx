@@ -211,15 +211,17 @@ const api = async (url: string, method: string, body?: any) => {
 interface AddNewPredictDialogProps {
   visible: boolean;
   onHide: () => void;
+  currentRole :"field_coordinator" | "radiologist" | "monitor"
 }
 
 export const AddNewPredictDialog: React.FC<AddNewPredictDialogProps> = ({
   visible,
   onHide,
+  currentRole
 }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const toast = useRef<Toast>(null);
-
+console.log(currentRole)
   // ---- initial states
   const initialDemographic: DemographicForm = useMemo(
     () => ({

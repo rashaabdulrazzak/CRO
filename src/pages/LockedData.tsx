@@ -1,5 +1,5 @@
 import  { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+//import { useNavigate } from 'react-router-dom';
 
 // PrimeReact
 import { Button } from 'primereact/button';
@@ -12,7 +12,7 @@ import { Toast } from 'primereact/toast';
 import { getPatients, savePatients, type Patient } from '../lib/mockData';
 
 export default function LockedData() {
-  const navigate = useNavigate();
+ // const navigate = useNavigate();
 
   const [patients, setPatients] = useState<Patient[]>([]);
   const toastRef = useRef<Toast>(null);

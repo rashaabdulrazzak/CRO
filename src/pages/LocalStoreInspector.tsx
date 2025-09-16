@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import  { useMemo, useState } from "react";
 import { Button } from "primereact/button";
 
 type LSPatient = {
@@ -20,7 +20,7 @@ type LSForm = {
   caseId: number;
   type: string;
   version: string;
-  data: any;
+  data: unknown;
   createdAt: string;
 };
 type LSUpload = {
@@ -58,7 +58,7 @@ export default function LocalStoreInspector() {
       cases: read<LSCase[]>(KEYS.cases, []),
       forms: read<LSForm[]>(KEYS.forms, []),
       uploads: read<LSUpload[]>(KEYS.uploads, []),
-      draft: read<any | null>(KEYS.draft, null),
+      draft: read<unknown | null>(KEYS.draft, null),
     };
   }, [tick]);
 

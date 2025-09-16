@@ -96,7 +96,8 @@ export default function UserRecordTable() {
 const [ageOrder, setAgeOrder] = useState<1 | -1>(1);
 const [dateOrder, setDateOrder] = useState<1 | -1>(1);
   const [dialogVisible, setDialogVisible] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
+  // const [isEdit, setIsEdit] = useState(false);
+  const isEdit = false;
 const cards = [
  
   {
@@ -189,11 +190,11 @@ const clearFilters = () => {
   }; */
 
   // edit existing record
-  const openEdit = (UserRecord: UserRecord) => {
+ /*  const openEdit = (UserRecord: UserRecord) => {
     setForm(UserRecord);
     setIsEdit(true);
     setDialogVisible(true);
-  };
+  }; */
 
   const saveUserRecord = () => {
     if (isEdit) {
@@ -206,10 +207,10 @@ const clearFilters = () => {
     setDialogVisible(false);
   };
 
-  const deleteUserRecord = (UserRecord: UserRecord) => {
+/*   const deleteUserRecord = (UserRecord: UserRecord) => {
     setRecentUserRecord((prev) => prev.filter((a) => a.id !== UserRecord.id));
   };
-
+ */
   const dialogFooter = (
     <div>
       <Button

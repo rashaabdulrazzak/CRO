@@ -131,6 +131,7 @@ const Users: React.FC = () => {
   // Pagination state to control current page/rows
   const [first, setFirst] = useState(0); // index of first record in the current page
   const [rows, setRows] = useState(10); // rows per page
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onPage = (e: any) => {
     setFirst(e.first);
     setRows(e.rows);
@@ -144,7 +145,7 @@ const Users: React.FC = () => {
         !q ||
         [
           u.id,
-          u.name,
+          u.username,
           u.surname,
           u.email,
           u.phoneNumber,
