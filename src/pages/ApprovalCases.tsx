@@ -11,7 +11,7 @@ import { InputIcon } from "primereact/inputicon";
 import { AddNewPredictDialog } from "../components/AddNewPredictDialog";
 import ActionDialog from "../components/ActionDialog";
 import {  defaultQConfig } from "../constants/constant";
-// import "primereact/resources/themes/lara-light-teal/theme.css";
+import { useAuth } from "../components/AuthContext";
 
 export type YesNo = "yes" | "no" | null;
 
@@ -101,7 +101,7 @@ const initialUserRecord: UserRecord[] = [
 
 export default function PredictData() {
     const dt = useRef<DataTable<UserRecord[]>>(null); // ref to DataTable
-
+ const { user } = useAuth();
   const recentUserRecord = initialUserRecord; // In real app, fetch this from API
   
     const [selectedUserRecords, setSelectedUserRecords] = useState<UserRecord[]>([]);
@@ -419,7 +419,7 @@ const clearFilters = () => {
         width="48rem"                   // optional
       />
         
-      <AddNewPredictDialog visible={dialogVisible} onHide={() => setDialogVisible(false)} />
+      <AddNewPredictDialog visible={dialogVisible} onHide={() => setDialogVisible(false)}  currentRole={user?.role || "field_coordinator"}/>
     </div>
   );
 }
