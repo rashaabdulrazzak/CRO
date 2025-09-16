@@ -121,7 +121,7 @@ export default function ImageAssessment() {
             </div>
           </div>
         </Panel>
-        <LocalStoreInspector />
+     {/*    <LocalStoreInspector /> */}
         {showResults && (
           <div className="space-y-4">
             <p className="text-lg italic text-gray-900">

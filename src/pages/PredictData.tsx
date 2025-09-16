@@ -13,6 +13,8 @@ import ActionDialog from "../components/ActionDialog";
 import { defaultQConfig } from "../constants/constant";
 // import "primereact/resources/themes/lara-light-teal/theme.css";
 import "primereact/resources/primereact.min.css";
+import { useAuth } from '../components/AuthContext';
+
 export type YesNo = "yes" | "no" | null;
 
 type MixedAnswer = YesNo | boolean | string | null;
@@ -101,6 +103,7 @@ const initialUserRecord: UserRecord[] = [
 
 export default function PredictData() {
   const dt = useRef<DataTable<UserRecord[]>>(null); // ref to DataTable
+   const { user } = useAuth();
 
   const recentUserRecord=initialUserRecord
   const [selectedUserRecords, setSelectedUserRecords] = useState<UserRecord[]>(
@@ -288,10 +291,10 @@ export default function PredictData() {
     );
   };
 
-  const openAction = (row: UserRecord) => {
+ /*  const openAction = (row: UserRecord) => {
     setActionTarget(row);
     setActionDialogVisible(true);
-  };
+  }; */
 
   const handleActionSubmit = (payload: ActionDialogPayload) => {
     // TODO: send payload to your API or update local state
@@ -447,6 +450,7 @@ export default function PredictData() {
       <AddNewPredictDialog
         visible={dialogVisible}
         onHide={() => setDialogVisible(false)}
+        currentRole={user?.role || "field_coordinator"}
       />
     </div>
   );

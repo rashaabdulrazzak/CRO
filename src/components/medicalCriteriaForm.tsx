@@ -51,6 +51,7 @@ export default function MedicalCriteriaForm() {
   const [formData, setFormData] = useState<FormData>(initialFormData)
   const [showToast, setShowToast] = useState<{ message: string; type: "success" | "error" } | null>(null)
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateFormData = (field: keyof FormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
