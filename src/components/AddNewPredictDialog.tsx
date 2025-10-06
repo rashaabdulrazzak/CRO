@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type React from "react";
+import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog } from "primereact/dialog";
 import { Steps } from "primereact/steps";
@@ -8,7 +8,6 @@ import { Calendar } from "primereact/calendar";
 import { RadioButton } from "primereact/radiobutton";
 import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
-import { Checkbox } from "primereact/checkbox";
 import { FileUpload } from "primereact/fileupload";
 import { Toast } from "primereact/toast";
 import { getNextImageNumber } from "../lib/mockData";
@@ -80,34 +79,13 @@ type ExclusionForm = {
   birNoduluTespitEdilemeyenOlgular: boolean | null;
 };
 
-// Step 4
-interface AIDiag {
-  composition: {
-    cystic: boolean;
-    solid: boolean;
-    mixed: boolean;
-    spongioform: boolean;
-  };
-  echogenicity: {
-    anechoic: boolean;
-    hyperechoic: boolean;
-    hypoechoic: boolean;
-    veryHypoechoic: boolean;
-  };
-  shape: { widerThanTall: boolean; tallerThanWide: boolean };
-  margin: {
-    smooth: boolean;
-    illDefined: boolean;
-    lobular: boolean;
-    extraThyroidal: boolean;
-  };
-  echogenicFocii: {
-    noneOrLarge: boolean;
-    macrocalcifications: boolean;
-    peripheral: boolean;
-    punctate: boolean;
-  };
-}
+
+// step 6 
+ const radiologistOptions = [
+    { label: 'Radiologist 1', value: 'radiologist1' },
+    { label: 'Radiologist 2', value: 'radiologist2' },
+    { label: 'Radiologist 3', value: 'radiologist3' }
+  ];
 
 type UploadedPhoto = string; // dataURL or stub URL
 
@@ -166,24 +144,6 @@ const calcAgeFromDate = (d: Date | null): number | null => {
   return age;
 };
 
-// TIRADS (simple rules)
-const computeTirads = (ai: AIDiag) => {
-  let pts = 0;
-  if (ai.composition.solid) pts += 2;
-  else if (ai.composition.mixed) pts += 1;
-  if (ai.echogenicity.hyperechoic) pts += 1;
-  if (ai.echogenicity.hypoechoic) pts += 2;
-  if (ai.echogenicity.veryHypoechoic) pts += 3;
-  if (ai.shape.tallerThanWide) pts += 3;
-  if (ai.margin.lobular) pts += 2;
-  if (ai.margin.extraThyroidal) pts += 3;
-  if (ai.echogenicFocii.macrocalcifications) pts += 1;
-  if (ai.echogenicFocii.peripheral) pts += 2;
-  if (ai.echogenicFocii.punctate) pts += 3;
-  const category =
-    pts >= 7 ? "TR5" : pts >= 4 ? "TR4" : pts === 3 ? "TR3" : pts >= 1 ? "TR2" : "TR1";
-  return { points: pts, category };
-};
 
 // Volunteer ID: TR + 5 digits
 const VOL_ID_RE = /^TR\d{5}$/;
@@ -268,16 +228,7 @@ console.log(currentRole)
     birNoduluTespitEdilemeyenOlgular: null,
   };
 
-  const initialAI: AIDiag = useMemo(
-    () => ({
-      composition: { cystic: true, solid: false, mixed: true, spongioform: false },
-      echogenicity: { anechoic: true, hyperechoic: false, hypoechoic: true, veryHypoechoic: false },
-      shape: { widerThanTall: true, tallerThanWide: false },
-      margin: { smooth: true, illDefined: false, lobular: true, extraThyroidal: false },
-      echogenicFocii: { noneOrLarge: true, macrocalcifications: false, peripheral: true, punctate: false },
-    }),
-    []
-  );
+ 
 
   // ---- state
   const draftKey = "app.addPredictDraft";
@@ -285,11 +236,11 @@ console.log(currentRole)
   const [medical, setMedical] = useState<MedicalHistoryForm>(initialMed);
   const [inclusion, setInclusion] = useState<InclusionForm>(initialInc);
   const [exclusion, setExclusion] = useState<ExclusionForm>(initialExc);
-  const [ai, setAi] = useState<AIDiag>(initialAI);
   const [uploadedPhotos, setUploadedPhotos] = useState<UploadedPhoto[]>([]);
 
   const [patientId, setPatientId] = useState<number | null>(null);
   const [caseId, setCaseId] = useState<number | null>(null);
+  const [selectedRadiologist, setSelectedRadiologist] = useState<string>(radiologistOptions[0].value);
 
   // ---- load draft + revive dates
   useEffect(() => {
@@ -305,10 +256,11 @@ console.log(currentRole)
       setMedical({ ...initialMed, ...(d.medical || {}) });
       setInclusion({ ...initialInc, ...(d.inclusion || {}) });
       setExclusion({ ...initialExc, ...(d.exclusion || {}) });
-      setAi({ ...initialAI, ...(d.ai || {}) });
+    
       setUploadedPhotos(d.uploadedPhotos || []);
       setPatientId(d.patientId ?? null);
       setCaseId(d.caseId ?? null);
+      setSelectedRadiologist(d.selectedRadiologist || radiologistOptions[0].value);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -321,12 +273,12 @@ console.log(currentRole)
       medical,
       inclusion,
       exclusion,
-      ai,
       uploadedPhotos,
       patientId,
       caseId,
+      selectedRadiologist
     });
-  }, [activeIndex, demographic, medical, inclusion, exclusion, ai, uploadedPhotos, patientId, caseId]);
+  }, [activeIndex, demographic, medical, inclusion, exclusion, uploadedPhotos,selectedRadiologist, patientId, caseId]);
 
   // ---- localStorage “collections”
   const patientsKey = "app.patients";
@@ -365,12 +317,12 @@ console.log(currentRole)
     { label: "Medical History" },
     { label: "Inclusion Criteria" },
     { label: "Exclusion Criteria" },
-    { label: "AI Diagnostics" },
     { label: "Upload Photo" },
+    { label: "Choose Radiologist" },
   ];
 
   // Role per step (from protocol)
-  const stepRole = ["Hekim", "Koordinatör", "Hekim", "Hekim", "Koordinatör", "Hekim"] as const;
+  // const stepRole = ["Hekim", "Koordinatör", "Hekim", "Hekim", "Koordinatör", "Hekim"] as const;
 
   const referralOptions = [
     { label: "Radiology Clinic", value: "Radiology Clinic" },
@@ -391,7 +343,6 @@ console.log(currentRole)
     setMedical(initialMed);
     setInclusion(initialInc);
     setExclusion(initialExc);
-    setAi(initialAI);
     setUploadedPhotos([]);
     setPatientId(null);
     setCaseId(null);
@@ -412,191 +363,196 @@ console.log(currentRole)
     toastRef.current?.show({ severity: "success", summary: "Başarılı", detail, life: 2500 });
 
   const handleSaveAndNext = async () => {
-    try {
-      // STEP 0: create patient with validations
-      if (activeIndex === 0) {
-        const code = normalizeVolunteerCode(demographic.volunteerCode);
-        if (!VOL_ID_RE.test(code)) {
-          showError("Gönüllü ID formatı TR00000 olmalıdır (ör. TR00001).");
-          return;
-        }
-        if (!demographic.nameSurname?.trim()) {
-          showError("Name Surname zorunludur.");
-          return;
-        }
-        setDemographic((prev) => ({ ...prev, volunteerCode: code }));
-
-        const age = calcAgeFromDate(demographic.birthDate);
-        const sex =
-          demographic.gender === "male" ? "male" : demographic.gender === "female" ? "female" : undefined;
-
-        const localPatient = createPatientLocal({
-          code,
-          name: demographic.nameSurname.trim(),
-          age,
-          sex,
-        });
-        setPatientId(localPatient.id);
-
-        if (USE_BACKEND) {
-          await api("/patients", "POST", { name: demographic.nameSurname.trim(), age, sex, code });
-        }
-        setActiveIndex(1);
-        showInfo("Hasta oluşturuldu.");
+  try {
+    // STEP 0: create patient with validations
+    if (activeIndex === 0) {
+      const code = normalizeVolunteerCode(demographic.volunteerCode);
+      if (!VOL_ID_RE.test(code)) {
+        showError("Gönüllü ID formatı TR00000 olmalıdır (ör. TR00001).");
         return;
       }
-
-      // STEP 2 (Inclusion): ALL must be true; also ensure all answered
-      if (activeIndex === 2) {
-        const values = Object.values(inclusion);
-        if (values.some((v) => v === null)) {
-          showError("Lütfen tüm dahil etme kriterlerini yanıtlayın.");
-          return;
-        }
-        const allTrue = values.every((v) => v === true);
-        if (!allTrue) {
-          showError("Dahil etme kriterlerinin tamamı 'Evet' olmalıdır. Hasta eklenemez.");
-          return;
-        }
-      }
-
-      // STEP 3 (Exclusion): ANY true means exclude; ensure all answered
-      if (activeIndex === 3) {
-        const values = Object.values(exclusion);
-        if (values.some((v) => v === null)) {
-          showError("Lütfen tüm hariç tutma kriterlerini yanıtlayın.");
-          return;
-        }
-        const anyTrue = values.some((v) => v === true);
-        if (anyTrue) {
-          showError("Hariç tutma kriterlerinden biri veya daha fazlası 'Evet'. Hasta eklenemez.");
-          return;
-        }
-      }
-
-      // Intermediate steps (1,2,3,4): continue
-      if (activeIndex > 0 && activeIndex < 5) {
-        setActiveIndex(activeIndex + 1);
+      if (!demographic.nameSurname?.trim()) {
+        showError("Name Surname zorunludur.");
         return;
       }
+      setDemographic((prev) => ({ ...prev, volunteerCode: code }));
 
-      // FINAL STEP (5): require at least one image, then save everything
-      if (activeIndex === 5) {
-        if (!patientId) {
-          showError("Hasta oluşturulamadı. Lütfen baştan deneyin.");
-          return;
-        }
-        if (!uploadedPhotos.length) {
-          showError("Lütfen en az bir USG görüntüsü yükleyin.");
-          return;
-        }
+      const age = calcAgeFromDate(demographic.birthDate);
+      const sex =
+        demographic.gender === "male" ? "male" : demographic.gender === "female" ? "female" : undefined;
 
-        const base = normalizeVolunteerCode(demographic.volunteerCode);
-        const caseImageId = makeImageId(base, 0);
-        const localCase = createCaseLocal({ patientId, imageId: caseImageId });
-        setCaseId(localCase.id);
+      const localPatient = createPatientLocal({
+        code,
+        name: demographic.nameSurname.trim(),
+        age,
+        sex,
+      });
+      setPatientId(localPatient.id);
 
-        if (USE_BACKEND) {
-          await api("/cases", "POST", { patientId, imageId: caseImageId });
-        }
-
-        // Uploads numbered TRxxxxx-01, -02, ...
-        for (let i = 0; i < uploadedPhotos.length; i++) {
-          const imgId = makeImageId(base, i);
-          const url = uploadedPhotos[i]?.startsWith("data:")
-            ? `local://${imgId}`
-            : uploadedPhotos[i] || `local://${imgId}`;
-          createUploadLocal({ caseId: localCase.id, kind: "USG", url });
-          if (USE_BACKEND) {
-            await api(`/uploads/cases/${localCase.id}`, "POST", { kind: "USG", url, createdByUserId: 1 });
-          }
-        }
-
-        // Visit/administrative form
-        const visitPayload = {
-          volunteerCode: base,
-          protocolNo: demographic.protocolNo,
-          visitDate: demographic.visitDate ? demographic.visitDate.toISOString().split("T")[0] : null,
-          secondVisitDate: demographic.secondVisitDate
-            ? demographic.secondVisitDate.toISOString().split("T")[0]
-            : null,
-          referredFrom: demographic.referredFrom,
-          usgDevice: demographic.usgDevice,
-          bmi: demographic.bodyMassIndex,
-          weight: demographic.weight,
-          size: demographic.size,
-          extraQuestions: {
-            q1: demographic.question1,
-            q2: demographic.question2,
-            q3: demographic.question3,
-            q4: demographic.question4,
-            q5: demographic.question5,
-          },
-        };
-        createFormLocal({ caseId: localCase.id, type: "CRF01-visit", version: "v1", data: visitPayload });
-        if (USE_BACKEND) {
-          await api(`/forms/cases/${localCase.id}`, "POST", {
-            type: "CRF01-visit",
-            version: "v1",
-            data: visitPayload,
-            createdByUserId: 1,
-          });
-        }
-
-        // Eligibility form (medical + inclusion + exclusion)
-        const eligibilityPayload = { medicalHistory: medical, inclusion, exclusion };
-        createFormLocal({ caseId: localCase.id, type: "CRF01-eligibility", version: "v1", data: eligibilityPayload });
-        if (USE_BACKEND) {
-          await api(`/forms/cases/${localCase.id}`, "POST", {
-            type: "CRF01-eligibility",
-            version: "v1",
-            data: eligibilityPayload,
-            createdByUserId: 1,
-          });
-        }
-
-        // AI form with TIRADS
-        const tirads = computeTirads(ai);
-        const aiPayload = { ...ai, tirads };
-        createFormLocal({ caseId: localCase.id, type: "CRF01-ai", version: "v1", data: aiPayload });
-        if (USE_BACKEND) {
-          await api(`/forms/cases/${localCase.id}`, "POST", {
-            type: "CRF01-ai",
-            version: "v1",
-            data: aiPayload,
-            createdByUserId: 1,
-          });
-        }
-
-        showSuccess("Kayıt tamamlandı.");
-        resetFormToInitialState();
-        onHide();
+      if (USE_BACKEND) {
+        await api("/patients", "POST", { name: demographic.nameSurname.trim(), age, sex, code });
       }
-    } catch (err: any) {
-      console.error(err);
-      showError(typeof err?.message === "string" ? err.message : "İşlem sırasında bir hata oluştu.");
+      setActiveIndex(1);
+      showInfo("Hasta oluşturuldu.");
+      return;
     }
-  };
+
+    // STEP 1 (Medical History): Just advance
+    if (activeIndex === 1) {
+      setActiveIndex(2);
+      return;
+    }
+
+    // STEP 2 (Inclusion): ALL must be true; also ensure all answered
+    if (activeIndex === 2) {
+      const values = Object.values(inclusion);
+      if (values.some((v) => v === null)) {
+        showError("Lütfen tüm dahil etme kriterlerini yanıtlayın.");
+        return;
+      }
+      const allTrue = values.every((v) => v === true);
+      if (!allTrue) {
+        showError("Dahil etme kriterlerinin tamamı 'Evet' olmalıdır. Hasta eklenemez.");
+        return;
+      }
+      setActiveIndex(3);
+      return;
+    }
+
+    // STEP 3 (Exclusion): ANY true means exclude; ensure all answered
+    if (activeIndex === 3) {
+      const values = Object.values(exclusion);
+      if (values.some((v) => v === null)) {
+        showError("Lütfen tüm hariç tutma kriterlerini yanıtlayın.");
+        return;
+      }
+      const anyTrue = values.some((v) => v === true);
+      if (anyTrue) {
+        showError("Hariç tutma kriterlerinden biri veya daha fazlası 'Evet'. Hasta eklenemez.");
+        return;
+      }
+      setActiveIndex(4);
+      return;
+    }
+
+    // STEP 4 (Upload Photo): Validate images and advance
+    if (activeIndex === 4) {
+      if (!patientId) {
+        showError("Hasta oluşturulamadı. Lütfen baştan deneyin.");
+        return;
+      }
+      if (!uploadedPhotos.length) {
+        showError("Lütfen en az bir USG görüntüsü yükleyin.");
+        return;
+      }
+      setActiveIndex(5);
+      return;
+    }
+
+    // FINAL STEP 5 (Radiologist Selection): Validate and save EVERYTHING
+    if (activeIndex === 5) {
+      if (!selectedRadiologist) {
+        showError("Please select a radiologist.");
+        return;
+      }
+
+      // NOW save all data since all steps are complete
+      const base = normalizeVolunteerCode(demographic.volunteerCode);
+      const caseImageId = makeImageId(base, 0);
+      const localCase = createCaseLocal({ patientId, imageId: caseImageId });
+      setCaseId(localCase.id);
+
+      if (USE_BACKEND) {
+        await api("/cases", "POST", { patientId, imageId: caseImageId });
+      }
+
+      // Uploads numbered TRxxxxx-01, -02, ...
+      for (let i = 0; i < uploadedPhotos.length; i++) {
+        const imgId = makeImageId(base, i);
+        const url = uploadedPhotos[i]?.startsWith("data:")
+          ? `local://${imgId}`
+          : uploadedPhotos[i] || `local://${imgId}`;
+        createUploadLocal({ caseId: localCase.id, kind: "USG", url });
+        if (USE_BACKEND) {
+          await api(`/uploads/cases/${localCase.id}`, "POST", { kind: "USG", url, createdByUserId: 1 });
+        }
+      }
+
+      // Visit/administrative form
+      const visitPayload = {
+        volunteerCode: base,
+        protocolNo: demographic.protocolNo,
+        visitDate: demographic.visitDate ? demographic.visitDate.toISOString().split("T")[0] : null,
+        secondVisitDate: demographic.secondVisitDate
+          ? demographic.secondVisitDate.toISOString().split("T")[0]
+          : null,
+        referredFrom: demographic.referredFrom,
+        usgDevice: demographic.usgDevice,
+        bmi: demographic.bodyMassIndex,
+        weight: demographic.weight,
+        size: demographic.size,
+        extraQuestions: {
+          q1: demographic.question1,
+          q2: demographic.question2,
+          q3: demographic.question3,
+          q4: demographic.question4,
+          q5: demographic.question5,
+        },
+        selectedRadiologist: selectedRadiologist,  // Add radiologist to payload
+      };
+      createFormLocal({ caseId: localCase.id, type: "CRF01-visit", version: "v1", data: visitPayload });
+      if (USE_BACKEND) {
+        await api(`/forms/cases/${localCase.id}`, "POST", {
+          type: "CRF01-visit",
+          version: "v1",
+          data: visitPayload,
+          createdByUserId: 1,
+        });
+      }
+
+      // Eligibility form (medical + inclusion + exclusion)
+      const eligibilityPayload = { medicalHistory: medical, inclusion, exclusion };
+      createFormLocal({ caseId: localCase.id, type: "CRF01-eligibility", version: "v1", data: eligibilityPayload });
+      if (USE_BACKEND) {
+        await api(`/forms/cases/${localCase.id}`, "POST", {
+          type: "CRF01-eligibility",
+          version: "v1",
+          data: eligibilityPayload,
+          createdByUserId: 1,
+        });
+      }
+
+      showSuccess("Kayıt tamamlandı.");
+      resetFormToInitialState();
+      onHide();
+    }
+  } catch (err: any) {
+    console.error(err);
+    showError(typeof err?.message === "string" ? err.message : "İşlem sırasında bir hata oluştu.");
+  }
+};
+
 
   // ================== UI RENDERERS ==================
   const renderStepContent = () => {
-    switch (activeIndex) {
-      case 0:
-        return renderDemographicInformation();
-      case 1:
-        return renderMedicalHistory();
-      case 2:
-        return renderInclusionCriteria();
-      case 3:
-        return renderExclusionCriteria();
-      case 4:
-        return renderAIDiagnostics();
-      case 5:
-        return renderUploadPhoto();
-      default:
-        return <div className="text-center py-8 text-gray-500">Step content coming soon...</div>;
-    }
-  };
+  switch (activeIndex) {
+    case 0:
+      return renderDemographicInformation();
+    case 1:
+      return renderMedicalHistory();
+    case 2:
+      return renderInclusionCriteria();
+    case 3:
+      return renderExclusionCriteria();
+    case 4:
+      return renderUploadPhoto();
+    case 5:
+      return renderAvailableRadiologist();  
+    default:
+      return <div className="text-center py-8 text-gray-500">Step content coming soon...</div>;
+  }
+};
+
 
   const renderDemographicInformation = () => (
     <>
@@ -872,143 +828,7 @@ console.log(currentRole)
     </div>
   );
 
-  const renderAIDiagnostics = () => (
-    <div className="space-y-8">
-      {/* Composition */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Composition</h3>
-        <div className="space-y-3">
-          {[
-            ["cystic", "Cystic or almost completely cystic"],
-            ["solid", "Solid or Almost Completely Solid"],
-            ["mixed", "Mixed Cystic and Solid"],
-            ["spongioform", "Spongioform"],
-          ].map(([key, label]) => (
-            <div className="flex items-center gap-3" key={key}>
-              <Checkbox
-                inputId={`comp-${key}`}
-                checked={(ai.composition as any)[key]}
-                onChange={(e) =>
-                  setAi((prev) => ({
-                    ...prev,
-                    composition: { ...prev.composition, [key]: e.checked },
-                  }))
-                }
-              />
-              <label htmlFor={`comp-${key}`} className="text-sm text-gray-700 flex items-center gap-2">
-                {label}
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Echogenicity */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Echogenicity</h3>
-        <div className="space-y-3">
-          {[
-            ["anechoic", "Anechoic"],
-            ["hyperechoic", "Hyperechoic or Isoechoic"],
-            ["hypoechoic", "Hypoechoic"],
-            ["veryHypoechoic", "Very Hypoechoic"],
-          ].map(([key, label]) => (
-            <div className="flex items-center gap-3" key={key}>
-              <Checkbox
-                inputId={`echo-${key}`}
-                checked={(ai.echogenicity as any)[key]}
-                onChange={(e) =>
-                  setAi((prev) => ({ ...prev, echogenicity: { ...prev.echogenicity, [key]: e.checked } }))
-                }
-              />
-              <label htmlFor={`echo-${key}`} className="text-sm text-gray-700 flex items-center gap-2">
-                {label}
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Shape */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Shape</h3>
-        <div className="space-y-3">
-          {[
-            ["widerThanTall", "Wider Than Tall"],
-            ["tallerThanWide", "Taller Than Wide"],
-          ].map(([key, label]) => (
-            <div className="flex items-center gap-3" key={key}>
-              <Checkbox
-                inputId={`shape-${key}`}
-                checked={(ai.shape as any)[key]}
-                onChange={(e) =>
-                  setAi((prev) => ({ ...prev, shape: { ...prev.shape, [key]: e.checked } }))
-                }
-              />
-              <label htmlFor={`shape-${key}`} className="text-sm text-gray-700 flex items-center gap-2">
-                {label}
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Margin */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Margin</h3>
-        <div className="space-y-3">
-          {[
-            ["smooth", "Smooth"],
-            ["illDefined", "Ill defined"],
-            ["lobular", "Lobular or irregular"],
-            ["extraThyroidal", "Extra thyroidal extension"],
-          ].map(([key, label]) => (
-            <div className="flex items-center gap-3" key={key}>
-              <Checkbox
-                inputId={`margin-${key}`}
-                checked={(ai.margin as any)[key]}
-                onChange={(e) =>
-                  setAi((prev) => ({ ...prev, margin: { ...prev.margin, [key]: e.checked } }))
-                }
-              />
-              <label htmlFor={`margin-${key}`} className="text-sm text-gray-700 flex items-center gap-2">
-                {label}
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Echogenic Focii */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Echogenic Focii</h3>
-        <div className="space-y-3">
-          {[
-            ["noneOrLarge", "None or Large Comet Tail Artifacts"],
-            ["macrocalcifications", "Macrocalcifications"],
-            ["peripheral", "Peripheral Calcifications"],
-            ["punctate", "Punctate Echogenic Foci"],
-          ].map(([key, label]) => (
-            <div className="flex items-center gap-3" key={key}>
-              <Checkbox
-                inputId={`foci-${key}`}
-                checked={(ai.echogenicFocii as any)[key]}
-                onChange={(e) =>
-                  setAi((prev) => ({
-                    ...prev,
-                    echogenicFocii: { ...prev.echogenicFocii, [key]: e.checked },
-                  }))
-                }
-              />
-              <label htmlFor={`foci-${key}`} className="text-sm text-gray-700 flex items-center gap-2">
-                {label}
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
 
   const renderUploadPhoto = () => {
     const onFileSelect = (e: any) => {
@@ -1064,6 +884,26 @@ console.log(currentRole)
     );
   };
 
+const renderAvailableRadiologist = () => {
+  return (
+    <>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Choose Available Radiologist
+        </label>
+        <Dropdown
+          value={selectedRadiologist}
+          options={radiologistOptions}
+          onChange={(e) => setSelectedRadiologist(e.value)}
+          placeholder="Select a Radiologist"
+          className="w-48"
+          panelClassName="mt-1"
+        />
+      </div>
+    </>
+  );
+};
+
   // ================== SHELL ==================
   const headerElement = (
     <div className="flex items-center gap-3">
@@ -1094,13 +934,8 @@ console.log(currentRole)
         </div>
         <div className="mb-6">
           <span
-            className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium ${
-              stepRole[activeIndex] === "Hekim"
-                ? "border-blue-300 text-blue-700 bg-blue-50"
-                : "border-amber-300 text-amber-700 bg-amber-50"
-            }`}
+            className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium `}
           >
-            Role: {stepRole[activeIndex]}
           </span>
         </div>
 
@@ -1123,3 +958,5 @@ console.log(currentRole)
     </Dialog>
   );
 };
+
+

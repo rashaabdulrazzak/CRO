@@ -1,0 +1,209 @@
+// Step 4
+interface AIDiag {
+  composition: {
+    cystic: boolean;
+    solid: boolean;
+    mixed: boolean;
+    spongioform: boolean;
+  };
+  echogenicity: {
+    anechoic: boolean;
+    hyperechoic: boolean;
+    hypoechoic: boolean;
+    veryHypoechoic: boolean;
+  };
+  shape: { widerThanTall: boolean; tallerThanWide: boolean };
+  margin: {
+    smooth: boolean;
+    illDefined: boolean;
+    lobular: boolean;
+    extraThyroidal: boolean;
+  };
+  echogenicFocii: {
+    noneOrLarge: boolean;
+    macrocalcifications: boolean;
+    peripheral: boolean;
+    punctate: boolean;
+  };
+}
+// TIRADS (simple rules)
+const computeTirads = (ai: AIDiag) => {
+  let pts = 0;
+  if (ai.composition.solid) pts += 2;
+  else if (ai.composition.mixed) pts += 1;
+  if (ai.echogenicity.hyperechoic) pts += 1;
+  if (ai.echogenicity.hypoechoic) pts += 2;
+  if (ai.echogenicity.veryHypoechoic) pts += 3;
+  if (ai.shape.tallerThanWide) pts += 3;
+  if (ai.margin.lobular) pts += 2;
+  if (ai.margin.extraThyroidal) pts += 3;
+  if (ai.echogenicFocii.macrocalcifications) pts += 1;
+  if (ai.echogenicFocii.peripheral) pts += 2;
+  if (ai.echogenicFocii.punctate) pts += 3;
+  const category =
+    pts >= 7 ? "TR5" : pts >= 4 ? "TR4" : pts === 3 ? "TR3" : pts >= 1 ? "TR2" : "TR1";
+  return { points: pts, category };
+};
+ const initialAI: AIDiag = useMemo(
+    () => ({
+      composition: { cystic: true, solid: false, mixed: true, spongioform: false },
+      echogenicity: { anechoic: true, hyperechoic: false, hypoechoic: true, veryHypoechoic: false },
+      shape: { widerThanTall: true, tallerThanWide: false },
+      margin: { smooth: true, illDefined: false, lobular: true, extraThyroidal: false },
+      echogenicFocii: { noneOrLarge: true, macrocalcifications: false, peripheral: true, punctate: false },
+    }),
+    []
+  );
+    const [ai, setAi] = useState<AIDiag>(initialAI);
+  setAi({ ...initialAI, ...(d.ai || {}) });
+
+    // AI form with TIRADS
+        const tirads = computeTirads(ai);
+        const aiPayload = { ...ai, tirads };
+        createFormLocal({ caseId: localCase.id, type: "CRF01-ai", version: "v1", data: aiPayload });
+        if (USE_BACKEND) {
+          await api(`/forms/cases/${localCase.id}`, "POST", {
+            type: "CRF01-ai",
+            version: "v1",
+            data: aiPayload,
+            createdByUserId: 1,
+          });
+        }
+
+          const renderAIDiagnostics = () => (
+    <div className="space-y-8">
+      {/* Composition */}
+      <div>
+        <h3 className="text-lg font-medium text-gray-800 mb-4">Composition</h3>
+        <div className="space-y-3">
+          {[
+            ["cystic", "Cystic or almost completely cystic"],
+            ["solid", "Solid or Almost Completely Solid"],
+            ["mixed", "Mixed Cystic and Solid"],
+            ["spongioform", "Spongioform"],
+          ].map(([key, label]) => (
+            <div className="flex items-center gap-3" key={key}>
+              <Checkbox
+                inputId={`comp-${key}`}
+                checked={(ai.composition as any)[key]}
+                onChange={(e) =>
+                  setAi((prev) => ({
+                    ...prev,
+                    composition: { ...prev.composition, [key]: e.checked },
+                  }))
+                }
+              />
+              <label htmlFor={`comp-${key}`} className="text-sm text-gray-700 flex items-center gap-2">
+                {label}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Echogenicity */}
+      <div>
+        <h3 className="text-lg font-medium text-gray-800 mb-4">Echogenicity</h3>
+        <div className="space-y-3">
+          {[
+            ["anechoic", "Anechoic"],
+            ["hyperechoic", "Hyperechoic or Isoechoic"],
+            ["hypoechoic", "Hypoechoic"],
+            ["veryHypoechoic", "Very Hypoechoic"],
+          ].map(([key, label]) => (
+            <div className="flex items-center gap-3" key={key}>
+              <Checkbox
+                inputId={`echo-${key}`}
+                checked={(ai.echogenicity as any)[key]}
+                onChange={(e) =>
+                  setAi((prev) => ({ ...prev, echogenicity: { ...prev.echogenicity, [key]: e.checked } }))
+                }
+              />
+              <label htmlFor={`echo-${key}`} className="text-sm text-gray-700 flex items-center gap-2">
+                {label}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Shape */}
+      <div>
+        <h3 className="text-lg font-medium text-gray-800 mb-4">Shape</h3>
+        <div className="space-y-3">
+          {[
+            ["widerThanTall", "Wider Than Tall"],
+            ["tallerThanWide", "Taller Than Wide"],
+          ].map(([key, label]) => (
+            <div className="flex items-center gap-3" key={key}>
+              <Checkbox
+                inputId={`shape-${key}`}
+                checked={(ai.shape as any)[key]}
+                onChange={(e) =>
+                  setAi((prev) => ({ ...prev, shape: { ...prev.shape, [key]: e.checked } }))
+                }
+              />
+              <label htmlFor={`shape-${key}`} className="text-sm text-gray-700 flex items-center gap-2">
+                {label}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Margin */}
+      <div>
+        <h3 className="text-lg font-medium text-gray-800 mb-4">Margin</h3>
+        <div className="space-y-3">
+          {[
+            ["smooth", "Smooth"],
+            ["illDefined", "Ill defined"],
+            ["lobular", "Lobular or irregular"],
+            ["extraThyroidal", "Extra thyroidal extension"],
+          ].map(([key, label]) => (
+            <div className="flex items-center gap-3" key={key}>
+              <Checkbox
+                inputId={`margin-${key}`}
+                checked={(ai.margin as any)[key]}
+                onChange={(e) =>
+                  setAi((prev) => ({ ...prev, margin: { ...prev.margin, [key]: e.checked } }))
+                }
+              />
+              <label htmlFor={`margin-${key}`} className="text-sm text-gray-700 flex items-center gap-2">
+                {label}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Echogenic Focii */}
+      <div>
+        <h3 className="text-lg font-medium text-gray-800 mb-4">Echogenic Focii</h3>
+        <div className="space-y-3">
+          {[
+            ["noneOrLarge", "None or Large Comet Tail Artifacts"],
+            ["macrocalcifications", "Macrocalcifications"],
+            ["peripheral", "Peripheral Calcifications"],
+            ["punctate", "Punctate Echogenic Foci"],
+          ].map(([key, label]) => (
+            <div className="flex items-center gap-3" key={key}>
+              <Checkbox
+                inputId={`foci-${key}`}
+                checked={(ai.echogenicFocii as any)[key]}
+                onChange={(e) =>
+                  setAi((prev) => ({
+                    ...prev,
+                    echogenicFocii: { ...prev.echogenicFocii, [key]: e.checked },
+                  }))
+                }
+              />
+              <label htmlFor={`foci-${key}`} className="text-sm text-gray-700 flex items-center gap-2">
+                {label}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
