@@ -1,17 +1,14 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-// import "primereact/resources/themes/saga-blue/theme.css";
-//
 import { Tag } from "primereact/tag";
 import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
 import { AddNewPredictDialog } from "../components/AddNewPredictDialog";
 import ActionDialog from "../components/ActionDialog";
 import { defaultQConfig } from "../constants/constant";
-// import "primereact/resources/themes/lara-light-teal/theme.css";
 import "primereact/resources/primereact.min.css";
 import { useAuth } from '../components/AuthContext';
 
@@ -24,6 +21,7 @@ type ActionDialogPayload = {
   username: string;
   isApproved: boolean;
 };
+
 type UserRecord = {
   id: string | number;
   name: string;
@@ -65,8 +63,8 @@ const initialUserRecord: UserRecord[] = [
   },
   {
     id: "0239",
-    name: "Bob",
-    age: 34,
+    name: "Charlie",
+    age: 28,
     country: "UK",
     city: "London",
     weight: 80,
@@ -77,8 +75,8 @@ const initialUserRecord: UserRecord[] = [
   },
   {
     id: "0240",
-    name: "Bob",
-    age: 34,
+    name: "David",
+    age: 45,
     country: "UK",
     city: "London",
     weight: 80,
@@ -88,9 +86,9 @@ const initialUserRecord: UserRecord[] = [
     status: "Completed",
   },
   {
-    id: "0238",
-    name: "Bob",
-    age: 34,
+    id: "0241",
+    name: "Eve",
+    age: 31,
     country: "UK",
     city: "London",
     weight: 80,
@@ -101,170 +99,131 @@ const initialUserRecord: UserRecord[] = [
   },
 ];
 
-export default function PredictData() {
-  const dt = useRef<DataTable<UserRecord[]>>(null); // ref to DataTable
-   const { user } = useAuth();
+// Helper to get patients from localStorage
+const getPatientsFromStorage = (): UserRecord[] => {
+  try {
+    const patients = localStorage.getItem("app.patients");
+    const cases = localStorage.getItem("app.cases");
+    const forms = localStorage.getItem("app.forms");
+    
+    if (!patients) return [];
+    
+    const patientList = JSON.parse(patients);
+    const caseList = cases ? JSON.parse(cases) : [];
+    const formList = forms ? JSON.parse(forms) : [];
+    
+    // Map localStorage data to UserRecord format
+    return patientList.map((patient: any) => {
+      // Find associated case
+      const patientCase = caseList.find((c: any) => c.patientId === patient.id);
+      
+      // Find associated form
+      const patientForm = patientCase 
+        ? formList.find((f: any) => f.caseId === patientCase.id && f.type === "CRF01-visit")
+        : null;
+      
+      const formData = patientForm?.data || {};
+      
+      return {
+        id: patient.code || patient.id.toString(),
+        name: patient.name,
+        age: patient.age || 0,
+        country: "Turkey", // Default value since not collected in form
+        city: "Istanbul",  // Default value since not collected in form
+        weight: parseFloat(formData.weight) || 0,
+        lenght: parseFloat(formData.size) || 0,
+        create_date: new Date(patient.createdAt).toISOString().split('T')[0],
+        modify_date: new Date(patient.createdAt).toISOString().split('T')[0],
+        status: patientCase ? "in Progress" : "to do",
+      };
+    });
+  } catch (error) {
+    console.error("Error reading from localStorage:", error);
+    return [];
+  }
+};
 
-  const recentUserRecord=initialUserRecord
-  const [selectedUserRecords, setSelectedUserRecords] = useState<UserRecord[]>(
-    []
-  );
-/* 
-  const [ageOrder, setAgeOrder] = useState<1 | -1>(1);
-  const [dateOrder, setDateOrder] = useState<1 | -1>(1); */
+export default function PredictData() {
+  const dt = useRef<DataTable<UserRecord[]>>(null);
+  const { user } = useAuth();
+
+  // Initialize with localStorage data + initial mock data
+  const [recentUserRecord, setRecentUserRecord] = useState<UserRecord[]>(() => {
+    const storedPatients = getPatientsFromStorage();
+    return [...initialUserRecord, ...storedPatients];
+  });
+
+  const [selectedUserRecords, setSelectedUserRecords] = useState<UserRecord[]>([]);
   const [dialogVisible, setDialogVisible] = useState(false);
-//  const [isEdit, setIsEdit] = useState(false);
   const [actionDialogVisible, setActionDialogVisible] = useState(false);
   const [actionTarget, setActionTarget] = useState<UserRecord | null>(null);
- /*  const cards = [
-    {
-      bgHex: "#FCF1F7",
-      icon: "pi pi-calendar",
-      emptyState: true,
-      title: "No Task Today",
-      subtitle: "There is no task today yet.",
-      value: "",
-      label: "",
-    },
-    {
-      bgHex: "#EAF4FE",
-      icon: "pi pi-users",
-      value: "1.391",
-      label: "Total Predict",
-      delta: "-%23",
-      deltaDirection: "down" as const, // ✅ literal
-    },
-    {
-      bgHex: "#F5F4FE",
-      icon: "pi pi-users",
-      value: "7.933",
-      label: "Total Data",
-      delta: "+%23",
-      deltaDirection: "up" as const, // ✅ literal
-      accentHex: "#2563EB",
-    },
-  ] as const; */
+  const [globalFilter, setGlobalFilter] = useState<string>("");
 
-  /* const sortBy = (field: "age" | "create_date") => {
-    setRecentUserRecord((prev) => {
-      const copy = [...prev];
-      const order = field === "age" ? ageOrder : dateOrder;
+  // Listen for localStorage changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const storedPatients = getPatientsFromStorage();
+      setRecentUserRecord([...initialUserRecord, ...storedPatients]);
+    };
 
-      copy.sort((a, b) => {
-        const va = a[field] as unknown as number | string;
-        const vb = b[field] as unknown as number | string;
+    // Custom event listener for same-tab updates
+    window.addEventListener('localStorageUpdate', handleStorageChange);
+    
+    // Standard storage event for cross-tab updates
+    window.addEventListener('storage', handleStorageChange);
 
-        // normalize dates if needed
-        const na =
-          field === "create_date" ? new Date(String(va)).getTime() : Number(va);
-        const nb =
-          field === "create_date" ? new Date(String(vb)).getTime() : Number(vb);
+    return () => {
+      window.removeEventListener('localStorageUpdate', handleStorageChange);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
-        return order === 1 ? na - nb : nb - na;
-      });
-
-      // flip order for next click
-      if (field === "age") setAgeOrder((o) => (o === 1 ? -1 : 1));
-      else setDateOrder((o) => (o === 1 ? -1 : 1));
-
-      return copy;
-    });
-  }; */
+  // Refresh data on component mount
+  useEffect(() => {
+    const storedPatients = getPatientsFromStorage();
+    setRecentUserRecord([...initialUserRecord, ...storedPatients]);
+  }, []);
 
   const clearFilters = () => {
-    // If you use PrimeReact column filters/sorting, this resets them:
     dt.current?.reset();
+    setGlobalFilter("");
   };
-/*   const [form, setForm] = useState<UserRecord>({
-    id: 0,
-    name: "",
-    age: 0,
-    country: "",
-    city: "",
-    weight: 0,
-    lenght: 0,
-    create_date: "",
-    modify_date: "",
-    status: "",
-  }); */
 
-  // open new record dialog
+  // Open new record dialog
   const openNew = () => {
-  /*   setForm({
-      id: Date.now(),
-      name: "",
-      age: 0,
-      country: "",
-      city: "",
-      weight: 0,
-      lenght: 0,
-      create_date: new Date().toISOString().split("T")[0],
-      modify_date: new Date().toISOString().split("T")[0],
-      status: "Active",
-    }); */
-   // setIsEdit(false);
     setDialogVisible(true);
   };
 
-  // edit existing record
-/*   const openEdit = (UserRecord: UserRecord) => {
-    setForm(UserRecord);
-    setIsEdit(true);
-    setDialogVisible(true);
-  }; */
-
- /*  const saveUserRecord = () => {
-    if (isEdit) {
-      setRecentUserRecord((prev) =>
-        prev.map((a) => (a.id === form.id ? form : a))
-      );
-    } else {
-      setRecentUserRecord((prev) => [...prev, form]);
-    }
+  // Refresh data when dialog closes
+  const handleDialogClose = () => {
     setDialogVisible(false);
-  }; */
+    
+    // Refresh table data from localStorage
+    const storedPatients = getPatientsFromStorage();
+    setRecentUserRecord([...initialUserRecord, ...storedPatients]);
+  };
 
-/*   const deleteUserRecord = (UserRecord: UserRecord) => {
-    setRecentUserRecord((prev) => prev.filter((a) => a.id !== UserRecord.id));
-  }; */
   const exportExcel = () => {
     dt.current?.exportCSV();
   };
 
-  /* const dialogFooter = (
-    <div>
-      <Button
-        label="Save"
-        icon="pi pi-check"
-        onClick={saveUserRecord}
-        className="p-button-sm p-button-success mr-2"
-      />
-      <Button
-        label="Cancel"
-        icon="pi pi-times"
-        onClick={() => setDialogVisible(false)}
-        className="p-button-sm p-button-secondary"
-      />
-    </div>
-  ); */
   const getSeverity = (status: string) => {
     switch (status) {
       case "On Hold":
         return "danger";
-
       case "Completed":
         return "success";
-
-      case "To do":
+      case "to do":
         return "info";
-
       case "in Progress":
         return "warning";
-
       case "renewal":
+        return null;
+      default:
         return null;
     }
   };
+
   const getTagClass = (status: string) => {
     switch (status) {
       case "On Hold":
@@ -281,6 +240,7 @@ export default function PredictData() {
         return "";
     }
   };
+
   const statusBodyTemplate = (rowData: UserRecord) => {
     return (
       <Tag
@@ -291,15 +251,8 @@ export default function PredictData() {
     );
   };
 
- /*  const openAction = (row: UserRecord) => {
-    setActionTarget(row);
-    setActionDialogVisible(true);
-  }; */
-
   const handleActionSubmit = (payload: ActionDialogPayload) => {
-    // TODO: send payload to your API or update local state
     console.log("Submit payload:", payload);
-
     setActionDialogVisible(false);
     setActionTarget(null);
   };
@@ -308,10 +261,10 @@ export default function PredictData() {
     setActionDialogVisible(false);
     setActionTarget(null);
   };
+
   return (
     <div>
       <div className="flex items-center justify-between mt-1.5 mb-4">
-        {/* Left: Title */}
         <h2 className="text-2xl font-bold">Trial Cases</h2>
         <Button
           label="Add New Trial Case"
@@ -320,17 +273,16 @@ export default function PredictData() {
           onClick={openNew}
         />
       </div>
-      {/* Right: Buttons */}
-      {/* Search / Filter row (small controls + Clear) */}
+
+      {/* Search / Filter row */}
       <div className="flex flex-col md:flex-row gap-3 lg:items-end lg:justify-end justify-center items-initial mb-4">
         <IconField iconPosition="left">
           <InputIcon className="pi pi-search" />
           <InputText
             type="search"
             placeholder="Search..."
-            onInput={() => {
-              
-            }}
+            value={globalFilter}
+            onInput={(e) => setGlobalFilter((e.target as HTMLInputElement).value)}
           />
         </IconField>
         <Button
@@ -339,11 +291,10 @@ export default function PredictData() {
           className="p-button-help"
           onClick={exportExcel}
         />
-
         <Button
           label="Clear"
           icon="pi pi-filter-slash"
-          className="p-button-secondary "
+          className="p-button-secondary"
           onClick={clearFilters}
         />
       </div>
@@ -359,6 +310,7 @@ export default function PredictData() {
         selectionMode="checkbox"
         selection={selectedUserRecords}
         onSelectionChange={(e) => setSelectedUserRecords(e.value)}
+        globalFilter={globalFilter}
         paginatorLeft={
           <span className="text-sm text-gray-600">
             Total Records: {recentUserRecord.length}
@@ -375,67 +327,89 @@ export default function PredictData() {
         <Column
           selectionMode="multiple"
           headerStyle={{ width: "3rem" }}
-        ></Column>
+        />
 
-        <Column field="id" header="ID" sortable style={{ minWidth: "3rem" }} />
+        <Column 
+          field="id" 
+          header="ID" 
+          sortable 
+          filter
+          filterPlaceholder="Search by ID"
+          style={{ minWidth: "3rem" }} 
+        />
         <Column
           field="name"
           header="Name"
           sortable
+          filter
+          filterPlaceholder="Search by name"
           style={{ minWidth: "8rem" }}
         />
-        <Column field="age" header="Age" style={{ minWidth: "8rem" }} />
+        <Column 
+          field="age" 
+          header="Age" 
+          sortable
+          filter
+          filterPlaceholder="Search by age"
+          style={{ minWidth: "8rem" }} 
+        />
         <Column
           field="country"
           header="Country"
           sortable
+          filter
+          filterPlaceholder="Search by country"
           style={{ minWidth: "8rem" }}
         />
         <Column
           field="city"
           header="City"
           sortable
+          filter
+          filterPlaceholder="Search by city"
           style={{ minWidth: "8rem" }}
         />
         <Column
           field="weight"
           header="Weight"
           sortable
+          filter
+          filterPlaceholder="Search by weight"
           style={{ minWidth: "8rem" }}
         />
         <Column
           field="lenght"
-          header="Lenght"
+          header="Length"
           sortable
+          filter
+          filterPlaceholder="Search by length"
           style={{ minWidth: "8rem" }}
         />
         <Column
           field="create_date"
           header="Create Date"
           sortable
+          filter
+          filterPlaceholder="Search by date"
           style={{ minWidth: "8rem" }}
         />
         <Column
           field="modify_date"
           header="Modify Date"
           sortable
+          filter
+          filterPlaceholder="Search by date"
           style={{ minWidth: "8rem" }}
         />
         <Column
           field="status"
           header="Status"
           sortable
+          filter
+          filterPlaceholder="Search by status"
           style={{ minWidth: "8rem" }}
           body={statusBodyTemplate}
         />
-
-      {/*   <Column
-          header="Actions"
-          body={(rowData) => (
-            <Button label="Action" text onClick={() => openAction(rowData)} />
-          )}
-          style={{ minWidth: "8rem" }}
-        /> */}
       </DataTable>
 
       <ActionDialog
@@ -443,13 +417,13 @@ export default function PredictData() {
         target={actionTarget ?? undefined}
         onSubmit={handleActionSubmit}
         onCancel={handleActionCancel}
-        qConfig={defaultQConfig} // or pass your own config
-        width="48rem" // optional
+        qConfig={defaultQConfig}
+        width="48rem"
       />
 
       <AddNewPredictDialog
         visible={dialogVisible}
-        onHide={() => setDialogVisible(false)}
+        onHide={handleDialogClose}
         currentRole={user?.role || "field_coordinator"}
       />
     </div>
