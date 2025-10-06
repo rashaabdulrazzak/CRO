@@ -38,6 +38,12 @@ const navigate = useNavigate()
            
         },
         {
+            label: 'Ai Image Assessment',
+            command:()=>navigate('/ai-assessment'),
+             roles: ['field_coordinator']
+           
+        },
+        {
             label: 'Image Assessment',
             command:()=>navigate('/image-assessment')
         },

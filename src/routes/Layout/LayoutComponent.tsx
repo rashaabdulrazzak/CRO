@@ -15,6 +15,7 @@ import MonitorHome from '../../pages/MonitorHome';
 import DataDownload from '../../pages/DataDownload';
 import LockedData from '../../pages/LockedData';
 import PathologyResults from '../../pages/PathologyResults';
+import AiAssessment  from '../../pages/AiAssessment';
 
 const LayoutComponent = () => {
   const location = useLocation()
@@ -33,6 +34,7 @@ const LayoutComponent = () => {
         
         <Route path="/image-evaluation" element={<ImageEvaluation />}></Route>
         <Route path="/image-assessment" element={<ImageAssessment />}></Route>
+        <Route path="/ai-assessment" element={<AiAssessment />}></Route>
          <Route path="/approval-cases" element={<ApprovalCases />}></Route>
          <Route path="/monitor-home" element={<MonitorHome />}></Route> 
          <Route path="/data-download" element={<DataDownload />}></Route> 
