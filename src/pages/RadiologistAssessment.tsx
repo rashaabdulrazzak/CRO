@@ -18,13 +18,13 @@ const api = async (url: string, method: string, body?: any) => {
   return res.json();
 };
 
-interface AiAssessmentProps {
+interface RadiologistAssessmentProps {
   patientId?: number | null;
   caseId?: number | null;
   volunteerCode?: string;
 }
 
-const AiAssessment: React.FC<AiAssessmentProps> = ({ 
+const RadiologistAssessment: React.FC<RadiologistAssessmentProps> = ({ 
   patientId, 
   caseId, 
   volunteerCode 
@@ -107,7 +107,7 @@ const AiAssessment: React.FC<AiAssessmentProps> = ({
       };
 
       // Save to localStorage
-      const existingAssessments = localStorage.getItem("app.aiAssessments");
+      const existingAssessments = localStorage.getItem("app.RadiologistAssessments");
       const assessmentsList = existingAssessments ? JSON.parse(existingAssessments) : [];
       
       // Check if assessment for this case already exists
@@ -131,7 +131,7 @@ const AiAssessment: React.FC<AiAssessmentProps> = ({
         });
       }
 
-      localStorage.setItem("app.aiAssessments", JSON.stringify(assessmentsList));
+      localStorage.setItem("app.RadiologistAssessments", JSON.stringify(assessmentsList));
 
       // Save to backend API (when enabled)
       if (USE_BACKEND && caseId) {
@@ -604,20 +604,19 @@ const AiAssessment: React.FC<AiAssessmentProps> = ({
   return (
     <div className="p-6">
       <Toast ref={toast} />
-      <div className="my-8 border-t border-gray-200"></div>
       <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-        AI Diagnostics
+        Radiologist Assessment 
       </h2>
       {renderAIDiagnostics()}
     </div>
   );
 };
 
-export default AiAssessment;
+export default RadiologistAssessment;
 {/* --- IGNORE ---
       modify_date: new Date(patient.createdAt).toISOString().split('T')[0], --- IGNORE ---
 --- --- IGNORE ---
-<AiAssessment 
+<RadiologistAssessment 
   patientId={currentPatientId} 
   caseId={currentCaseId} 
   volunteerCode={currentVolunteerCode} 

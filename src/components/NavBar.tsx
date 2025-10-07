@@ -38,8 +38,8 @@ const navigate = useNavigate()
            
         },
         {
-            label: 'Ai Image Assessment',
-            command:()=>navigate('/ai-assessment'),
+            label: 'Radiologist Assessment',
+            command:()=>navigate('/radiologist-assessment'),
              roles: ['field_coordinator']
            
         },

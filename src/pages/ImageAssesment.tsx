@@ -18,6 +18,7 @@ export default function ImageAssessment() {
     margin: "",
     echogenicFocii: "",
     tiradsScore: "",
+    tiradsPoint: "",
     biopsyNeedEvaluation: {
       fnaNeeded: false,
       normal: false,
@@ -35,6 +36,7 @@ export default function ImageAssessment() {
     margin: "Ill-defined",
     echogenicFocii: "Present",
     tiradsScore: "TR4",
+    tiradsPoint: "4",
     biopsyNeedEvaluation: {
       fnaNeeded: true,
       normal: false,
@@ -138,8 +140,9 @@ export default function ImageAssessment() {
                   { label: "Margin", field: "margin" },
                   { label: "Echogenic Focii", field: "echogenicFocii" },
                   { label: "TIRADS Score", field: "tiradsScore" },
+                  { label: "TIRADS Point", field: "tiradsPoint" },
                 ].map((item, index) => (
-                  <div key={item.field} className={`grid grid-cols-2 ${index < 5 ? "border-b border-gray-300" : ""}`}>
+                  <div key={item.field} className={`grid grid-cols-2 ${index < 6 ? "border-b border-gray-300" : ""}`}>
                     <div className="p-4 border-r border-gray-300 ">
                       <label htmlFor={item.field} className="text-sm font-medium text-black-700">
                         {item.label}
