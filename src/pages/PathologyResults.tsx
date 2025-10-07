@@ -136,8 +136,13 @@ export default function PathologyResults() {
 
   const decisionOptions = [
     { label: 'Pending', value: 'pending' },
-    { label: 'Biopsy Required', value: 'biopsy_required' },
-    { label: 'Biopsy Not Required', value: 'biopsy_not_required' },
+    { label: 'Bethesda I', value: '1' },
+    { label: 'Bethesda II', value: '2' },
+    { label: 'Bethesda III', value: '3' },
+    { label: 'Bethesda IV', value: '4' },
+    { label: 'Bethesda V - VI', value: '5' },
+   /*  { label: 'Biopsy Required', value: 'biopsy_required' },
+    { label: 'Biopsy Not Required', value: 'biopsy_not_required' }, */
   ];
 
   const getDecisionTag = (decision: string) => {
