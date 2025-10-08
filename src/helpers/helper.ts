@@ -16,6 +16,7 @@
         return null;
     }
   };
+
   export const getTagClass = (status: string) => {
     switch (status) {
       case "On Hold":

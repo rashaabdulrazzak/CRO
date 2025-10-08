@@ -11,93 +11,11 @@ import ActionDialog from "../components/ActionDialog";
 import { defaultQConfig } from "../constants/constant";
 import "primereact/resources/primereact.min.css";
 import { useAuth } from '../components/AuthContext';
+import type { UserRecord, ActionDialogPayload } from "../types";
+import { initialUserRecord } from "../lib/mockData";
+import { getTagClass,getSeverity } from "../helpers/helper";
 
-export type YesNo = "yes" | "no" | null;
 
-type MixedAnswer = YesNo | boolean | string | null;
-type ActionDialogPayload = {
-  userId: string | number | undefined;
-  answers: MixedAnswer[];
-  username: string;
-  isApproved: boolean;
-};
-
-type UserRecord = {
-  id: string | number;
-  name: string;
-  age: number;
-  country: string;
-  city: string;
-  weight: number;
-  lenght: number;
-  create_date: string;
-  modify_date: string;
-  status: string;
-};
-
-// Sample Data
-const initialUserRecord: UserRecord[] = [
-  {
-    id: "0237",
-    name: "Alice",
-    age: 29,
-    country: "USA",
-    city: "New York",
-    weight: 65,
-    lenght: 170,
-    create_date: "2023-01-01",
-    modify_date: "2023-01-10",
-    status: "in Progress",
-  },
-  {
-    id: "0238",
-    name: "Bob",
-    age: 34,
-    country: "UK",
-    city: "London",
-    weight: 80,
-    lenght: 180,
-    create_date: "2023-02-01",
-    modify_date: "2023-02-15",
-    status: "to do",
-  },
-  {
-    id: "0239",
-    name: "Charlie",
-    age: 28,
-    country: "UK",
-    city: "London",
-    weight: 80,
-    lenght: 180,
-    create_date: "2023-02-01",
-    modify_date: "2023-02-15",
-    status: "in Progress",
-  },
-  {
-    id: "0240",
-    name: "David",
-    age: 45,
-    country: "UK",
-    city: "London",
-    weight: 80,
-    lenght: 180,
-    create_date: "2023-02-01",
-    modify_date: "2023-02-15",
-    status: "Completed",
-  },
-  {
-    id: "0241",
-    name: "Eve",
-    age: 31,
-    country: "UK",
-    city: "London",
-    weight: 80,
-    lenght: 180,
-    create_date: "2023-02-01",
-    modify_date: "2023-02-15",
-    status: "Completed",
-  },
-];
 
 // Helper to get patients from localStorage
 const getPatientsFromStorage = (): UserRecord[] => {
@@ -203,43 +121,7 @@ export default function PredictData() {
     setRecentUserRecord([...initialUserRecord, ...storedPatients]);
   };
 
-  const exportExcel = () => {
-    dt.current?.exportCSV();
-  };
 
-  const getSeverity = (status: string) => {
-    switch (status) {
-      case "On Hold":
-        return "danger";
-      case "Completed":
-        return "success";
-      case "to do":
-        return "info";
-      case "in Progress":
-        return "warning";
-      case "renewal":
-        return null;
-      default:
-        return null;
-    }
-  };
-
-  const getTagClass = (status: string) => {
-    switch (status) {
-      case "On Hold":
-        return "danger-tag";
-      case "Completed":
-        return "success-tag";
-      case "to do":
-        return "info-tag";
-      case "in Progress":
-        return "warning-tag";
-      case "renewal":
-        return "renewal-tag";
-      default:
-        return "";
-    }
-  };
 
   const statusBodyTemplate = (rowData: UserRecord) => {
     return (
@@ -285,12 +167,6 @@ export default function PredictData() {
             onInput={(e) => setGlobalFilter((e.target as HTMLInputElement).value)}
           />
         </IconField>
-        <Button
-          label="Export"
-          icon="pi pi-upload"
-          className="p-button-help"
-          onClick={exportExcel}
-        />
         <Button
           label="Clear"
           icon="pi pi-filter-slash"

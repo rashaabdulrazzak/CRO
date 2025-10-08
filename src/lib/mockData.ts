@@ -1,3 +1,5 @@
+import type { UserRecord } from "../types";
+
 export interface Patient {
   id: string;
   volunteerId: string;
@@ -187,3 +189,67 @@ export const canDownload = (): boolean => {
   
   return hoursDiff >= 24;
 };
+
+// Sample Data
+export const initialUserRecord: UserRecord[] = [
+  {
+    id: "0237",
+    name: "Alice",
+    age: 29,
+    country: "USA",
+    city: "New York",
+    weight: 65,
+    lenght: 170,
+    create_date: "2023-01-01",
+    modify_date: "2023-01-10",
+    status: "in Progress",
+  },
+  {
+    id: "0238",
+    name: "Bob",
+    age: 34,
+    country: "UK",
+    city: "London",
+    weight: 80,
+    lenght: 180,
+    create_date: "2023-02-01",
+    modify_date: "2023-02-15",
+    status: "to do",
+  },
+  {
+    id: "0239",
+    name: "Charlie",
+    age: 28,
+    country: "UK",
+    city: "London",
+    weight: 80,
+    lenght: 180,
+    create_date: "2023-02-01",
+    modify_date: "2023-02-15",
+    status: "in Progress",
+  },
+  {
+    id: "0240",
+    name: "David",
+    age: 45,
+    country: "UK",
+    city: "London",
+    weight: 80,
+    lenght: 180,
+    create_date: "2023-02-01",
+    modify_date: "2023-02-15",
+    status: "Completed",
+  },
+  {
+    id: "0241",
+    name: "Eve",
+    age: 31,
+    country: "UK",
+    city: "London",
+    weight: 80,
+    lenght: 180,
+    create_date: "2023-02-01",
+    modify_date: "2023-02-15",
+    status: "Completed",
+  },
+];

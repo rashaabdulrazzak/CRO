@@ -10,7 +10,6 @@ import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
 import { FileUpload } from 'primereact/fileupload';
 import { getPatients, savePatients, getNextImageNumber, type Patient, type PatientImage } from '../lib/mockData';
-//import { toast } from 'sonner';
 import 'primeicons/primeicons.css'; // ensure PrimeIcons are available
 
 export default function PatientEntry() {
