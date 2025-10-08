@@ -10,30 +10,10 @@ import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
 import { AddNewPredictDialog } from "../components/AddNewPredictDialog";
 import ActionDialog from "../components/ActionDialog";
-import {  defaultQConfig } from "../constants/constant";
+import { defaultQConfig } from "../constants/constant";
 import { useAuth } from "../components/AuthContext";
-
-export type YesNo = "yes" | "no" | null;
-
-type MixedAnswer = YesNo | boolean | string | null;
- type ActionDialogPayload = {
-  userId: string | number | undefined;
-  answers: MixedAnswer[];
-  username: string;
-  isApproved: boolean;
-};
-type UserRecord = {
-  id: string | number;
-  name: string;
-  age: number;
-  country: string;
-  city: string;
-  weight: number;
-  lenght: number;
-  create_date: string;
-  modify_date: string;
-  status: string;
-};
+import type { UserRecord, ActionDialogPayload } from "../types";
+import { getSeverity, getTagClass } from "../helpers/helper";
 
 // Sample Data
 const initialUserRecord: UserRecord[] = [
@@ -100,50 +80,25 @@ const initialUserRecord: UserRecord[] = [
 ];
 
 export default function PredictData() {
-    const dt = useRef<DataTable<UserRecord[]>>(null); // ref to DataTable
- const { user } = useAuth();
+  const dt = useRef<DataTable<UserRecord[]>>(null); // ref to DataTable
+  const { user } = useAuth();
   const recentUserRecord = initialUserRecord; // In real app, fetch this from API
-  
-    const [selectedUserRecords, setSelectedUserRecords] = useState<UserRecord[]>([]);
 
-// const [ageOrder, setAgeOrder] = useState<1 | -1>(1);
-// const [dateOrder, setDateOrder] = useState<1 | -1>(1);
+  const [selectedUserRecords, setSelectedUserRecords] = useState<UserRecord[]>(
+    []
+  );
+
+  // const [ageOrder, setAgeOrder] = useState<1 | -1>(1);
+  // const [dateOrder, setDateOrder] = useState<1 | -1>(1);
   const [dialogVisible, setDialogVisible] = useState(false);
-//  const [isEdit, setIsEdit] = useState(false);
-       const [actionDialogVisible, setActionDialogVisible] = useState(false);
+  //  const [isEdit, setIsEdit] = useState(false);
+  const [actionDialogVisible, setActionDialogVisible] = useState(false);
   const [actionTarget, setActionTarget] = useState<UserRecord | null>(null);
-/* const cards = [
- 
-  {
-    bgHex: "#FCF1F7",
-    icon: "pi pi-calendar",
-    emptyState: true,
-    title: "No Task Today",
-    subtitle: "There is no task today yet.",
-    value: "",
-    label: "",
-  },
-   {
-    bgHex: "#EAF4FE",
-    icon: "pi pi-users",
-    value: "1.391",
-    label: "Total Predict",
-    delta: "-%23",
-    deltaDirection: "down" as const, // ✅ literal
-  },
-  {
-    bgHex: "#F5F4FE",
-    icon: "pi pi-users",
-    value: "7.933",
-    label: "Total Data",
-    delta: "+%23",
-    deltaDirection: "up" as const, // ✅ literal
-    accentHex: "#2563EB",
-  },
-] as const;
+    const [globalFilter, setGlobalFilter] = useState<string>("");
 
- */
-/*   
+
+
+  /*   
     const sortBy = (field: "age" | "create_date") => {
   setRecentUserRecord(prev => {
     const copy = [...prev];
@@ -168,11 +123,12 @@ export default function PredictData() {
   });
 }; */
 
-const clearFilters = () => {
-  // If you use PrimeReact column filters/sorting, this resets them:
-  dt.current?.reset();
-};
-/*   const [form, setForm] = useState<UserRecord>({
+  const clearFilters = () => {
+    // If you use PrimeReact column filters/sorting, this resets them:
+    dt.current?.reset();
+      setGlobalFilter("");
+  };
+  /*   const [form, setForm] = useState<UserRecord>({
     id: 0,
     name: "",
     age: 0,
@@ -186,8 +142,8 @@ const clearFilters = () => {
   }); */
 
   // open new record dialog
-  const openNew = () => {
-   /*  setForm({
+  /*const openNew = () => {
+     setForm({
       id: Date.now(),
       name: "",
       age: 0,
@@ -198,13 +154,13 @@ const clearFilters = () => {
       create_date: new Date().toISOString().split("T")[0],
       modify_date: new Date().toISOString().split("T")[0],
       status: "Active",
-    }); */
+    }); 
     //setIsEdit(false);
     setDialogVisible(true);
-  };
+  };*/
 
   // edit existing record
-/*   const openEdit = (UserRecord: UserRecord) => {
+  /*   const openEdit = (UserRecord: UserRecord) => {
     setForm(UserRecord);
     setIsEdit(true);
     setDialogVisible(true);
@@ -221,15 +177,14 @@ const clearFilters = () => {
     setDialogVisible(false);
   };
  */
-/*   const deleteUserRecord = (UserRecord: UserRecord) => {
+  /*   const deleteUserRecord = (UserRecord: UserRecord) => {
     setRecentUserRecord((prev) => prev.filter((a) => a.id !== UserRecord.id));
   }; */
-    const exportExcel = () => {
+  /*   const exportExcel = () => {
         dt.current?.exportCSV();
-    };
+    }; */
 
-
-/* 
+  /* 
   const dialogFooter = (
     <div>
       <Button
@@ -246,45 +201,16 @@ const clearFilters = () => {
       />
     </div>
   ); */
-  const getSeverity = (status:string) => {
-        switch (status) {
-            case 'On Hold':
-                return 'danger';
 
-            case 'Completed':
-                return 'success';
-
-            case 'To do':
-                return 'info';
-
-            case 'in Progress':
-                return 'warning';
-
-            case 'renewal':
-                return null;
-        }
-    };
-    const getTagClass = (status: string) => {
-    switch (status) {
-        case 'On Hold':
-            return 'danger-tag';
-        case 'Completed':
-            return 'success-tag';
-        case 'to do':
-            return 'info-tag';
-        case 'in Progress':
-            return 'warning-tag';
-        case 'renewal':
-            return 'renewal-tag';
-        default:
-            return '';
-    }
-};
-      const statusBodyTemplate = (rowData:UserRecord) => {
-        return <Tag className={`predict-tag ${getTagClass(rowData.status)}`} value={rowData.status} severity={getSeverity(rowData.status)} />;
-    };
-
-
+  const statusBodyTemplate = (rowData: UserRecord) => {
+    return (
+      <Tag
+        className={`predict-tag ${getTagClass(rowData.status)}`}
+        value={rowData.status}
+        severity={getSeverity(rowData.status)}
+      />
+    );
+  };
 
   const openAction = (row: UserRecord) => {
     setActionTarget(row);
@@ -304,31 +230,31 @@ const clearFilters = () => {
     setActionTarget(null);
   };
   return (
-    <div >
-
-      
+    <div>
       <div className="flex items-center justify-between mt-1.5 mb-4">
-    {/* Left: Title */}
-    <h2 className="text-2xl font-bold">Approval of Cases</h2>
-<Button label="Add New Case" className="add-btn" icon="pi pi-plus" onClick={openNew} />
+        {/* Left: Title */}
+        <h2 className="text-2xl font-bold">Approval of Cases</h2>
+        {/* <Button label="Add New Case" className="add-btn" icon="pi pi-plus" onClick={openNew} />
+         */}{" "}
+         {/* Search / Filter row (small controls + Clear) */}
+           <div className="flex flex-col md:flex-row gap-3 lg:items-end lg:justify-end justify-center items-initial mb-4">
+        <IconField iconPosition="left">
+          <InputIcon className="pi pi-search" />
+          <InputText type="search" placeholder="Search..."  value={globalFilter} onInput={(e) => setGlobalFilter((e.target as HTMLInputElement).value)} />
+
+        </IconField>
+     
+        <Button
+          label="Clear"
+          icon="pi pi-filter-slash"
+          className="p-button-secondary "
+          onClick={clearFilters}
+        />
       </div>
-    {/* Right: Buttons */}
-        {/* Search / Filter row (small controls + Clear) */}
-         <div className="flex flex-col md:flex-row gap-3 lg:items-end lg:justify-end justify-center items-initial mb-4">
-            <IconField iconPosition="left">
-                    <InputIcon className="pi pi-search" />
-                     <InputText type="search" placeholder="Search..." onInput={() => { }}  />
-            </IconField>
-<Button label="Export" icon="pi pi-upload" className="p-button-help" onClick={exportExcel} />
+      </div>
+     
+      
    
-            <Button
-              label="Clear"
-              icon="pi pi-filter-slash"
-              className="p-button-secondary "
-              onClick={clearFilters}
-            />
-          </div>
- 
 
       <DataTable
         value={recentUserRecord}
@@ -337,17 +263,28 @@ const clearFilters = () => {
         ref={dt}
         paginator
         rows={10}
-       dataKey="id" selectionMode="checkbox" selection={selectedUserRecords} onSelectionChange={(e) => setSelectedUserRecords(e.value)}
+        dataKey="id"
+        selectionMode="checkbox"
+        selection={selectedUserRecords}
+        onSelectionChange={(e) => setSelectedUserRecords(e.value)}
         paginatorLeft={
-        <span className="text-sm text-gray-600">
-        Total Records: {recentUserRecord.length}
-
-        </span>
-    }
-    paginatorRight={<span />} 
-    tableStyle={{ minWidth: "50rem" , maxWidth: "100%", overflowX: "auto" , fontSize: "12px"}}
+          <span className="text-sm text-gray-600">
+            Total Records: {recentUserRecord.length}
+          </span>
+        }
+        paginatorRight={<span />}
+        globalFilter={globalFilter}
+        tableStyle={{
+          minWidth: "50rem",
+          maxWidth: "100%",
+          overflowX: "auto",
+          fontSize: "12px",
+        }}
       >
-         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }}></Column>
+        <Column
+          selectionMode="multiple"
+          headerStyle={{ width: "3rem" }}
+        ></Column>
 
         <Column field="id" header="ID" sortable style={{ minWidth: "3rem" }} />
         <Column
@@ -401,25 +338,35 @@ const clearFilters = () => {
           body={statusBodyTemplate}
         />
 
-       <Column
-  header="Actions"
-  body={(rowData) => (
-    <Button label="Confirm" text onClick={() => openAction(rowData)} />
-  )}
-  style={{ minWidth: "8rem" }}
-/>
+        <Column
+          header="Actions"
+          body={(rowData) => (
+            <Button
+              disabled={rowData.status === "Completed"}
+              label="Confirm"
+              text
+              className="p-button-sm"
+              onClick={() => openAction(rowData)}
+            />
+          )}
+          style={{ minWidth: "8rem" }}
+        />
       </DataTable>
 
-           <ActionDialog
+      <ActionDialog
         visible={actionDialogVisible}
         target={actionTarget ?? undefined}
         onSubmit={handleActionSubmit}
         onCancel={handleActionCancel}
-        qConfig={defaultQConfig}        // or pass your own config
-        width="48rem"                   // optional
+        qConfig={defaultQConfig} // or pass your own config
+        width="48rem" // optional
       />
-        
-      <AddNewPredictDialog visible={dialogVisible} onHide={() => setDialogVisible(false)}  currentRole={user?.role || "field_coordinator"}/>
+
+      <AddNewPredictDialog
+        visible={dialogVisible}
+        onHide={() => setDialogVisible(false)}
+        currentRole={user?.role || "patolog_coordinator"}
+      />
     </div>
   );
 }

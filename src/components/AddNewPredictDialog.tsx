@@ -171,7 +171,7 @@ const api = async (url: string, method: string, body?: any) => {
 interface AddNewPredictDialogProps {
   visible: boolean;
   onHide: () => void;
-  currentRole :"field_coordinator" | "radiologist" | "monitor"
+  currentRole :"field_coordinator" | "radiologist" | "monitor" | "patolog_coordinator" | "biostatistician";
 }
 
 export const AddNewPredictDialog: React.FC<AddNewPredictDialogProps> = ({

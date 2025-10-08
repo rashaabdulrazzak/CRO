@@ -269,31 +269,7 @@ export default function PathologyResults() {
                       Uploaded: {new Date(image.uploadDate).toLocaleString()}
                     </p>
                   </div>
-
-                  {/* All Radiologist Evaluations */}
-                  <div className="mb-6">
-                    <h4 className="font-medium mb-3">All Radiologist Evaluations</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {image.evaluations.map((evaluation) => (
-                        <div key={evaluation.id} className="p-3 border rounded-lg">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="font-medium">{evaluation.radiologistName}</span>
-                            {getDecisionTag(evaluation.decision)}
-                          </div>
-                          {evaluation.evaluationDate && (
-                            <p className="text-xs text-gray-500 mb-2">
-                              {new Date(evaluation.evaluationDate).toLocaleString()}
-                            </p>
-                          )}
-                          {evaluation.notes && (
-                            <p className="text-sm text-gray-600">{evaluation.notes}</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Current User's Evaluation */}
+  {/* Current User's Evaluation */}
                   {user && (
                     <div className="border-t pt-6">
                       <h4 className="font-medium mb-3">Your Evaluation</h4>
@@ -334,6 +310,30 @@ export default function PathologyResults() {
                       </div>
                     </div>
                   )}
+                  {/* All Radiologist Evaluations */}
+                  <div className="mb-6">
+                    <h4 className="font-medium mb-3">All Radiologist Evaluations</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {image.evaluations.map((evaluation) => (
+                        <div key={evaluation.id} className="p-3 border rounded-lg">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="font-medium">{evaluation.radiologistName}</span>
+                            {getDecisionTag(evaluation.decision)}
+                          </div>
+                          {evaluation.evaluationDate && (
+                            <p className="text-xs text-gray-500 mb-2">
+                              {new Date(evaluation.evaluationDate).toLocaleString()}
+                            </p>
+                          )}
+                          {evaluation.notes && (
+                            <p className="text-sm text-gray-600">{evaluation.notes}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                
                 </div>
               </Card>
             ))}
