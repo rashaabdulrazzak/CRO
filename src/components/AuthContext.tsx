@@ -24,7 +24,7 @@ const mockUsers = [
   { id: '3', username: 'radiologist2', password: 'Pass123!', email:"radiologist2@test.com",role: 'radiologist' as const },
   { id: '4', username: 'radiologist3', password: 'Pass123!',email:"radiologist3@test.com", role: 'radiologist' as const },
   { id: '5', username: 'monitor1', password: 'Pass123!', email:"monitor@test.com",role: 'monitor' as const },
-  { id: '6', username: 'Biostatistician', password: 'Pass123!', email:"biostatistician@test.com",role: 'monitor' as const },
+  { id: '6', username: 'Biostatistician', password: 'Pass123!', email:"biostatistician@test.com",role: 'biostatistician' as const },
   { id: '7', username: 'patologcoordinator', password: 'Pass123!', email:"patologcoordinator@test.com",role: 'patolog_coordinator' as const },
 ];
 
