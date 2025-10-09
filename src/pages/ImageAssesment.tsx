@@ -1,368 +1,150 @@
 import { useRef, useState } from "react";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
-import { Checkbox } from "primereact/checkbox";
-import { Panel } from "primereact/panel";
-import { Toast } from "primereact/toast";
+
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import "primereact/resources/themes/saga-blue/theme.css";
+import "primereact/resources/primereact.min.css";
+import { Tag } from "primereact/tag";
+import { IconField } from "primereact/iconfield";
+import { InputIcon } from "primereact/inputicon";
+import type { UserRecord } from "../types";
+import { getSeverity, getTagClass } from "../helpers/helper";
+import ImageAssessmentDialog from "../components/ImageAssessmentDialog";
+import { initialUserRecord } from "../lib/mockData";
+import { useNavigate } from "react-router-dom";
 // import LocalStoreInspector from "./LocalStoreInspector";
 
 export default function ImageAssessment() {
-  const [protocolNumber, setProtocolNumber] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
+  const dt = useRef<DataTable<UserRecord[]>>(null);
+  const [userRecords, setUserRecords] = useState<UserRecord[]>(initialUserRecord);
+  const [selectedUserRecords, setSelectedUserRecords] = useState<UserRecord[]>([]);
+  const [globalFilter, setGlobalFilter] = useState<string>("");
+  const [assessmentDialogVisible, setAssessmentDialogVisible] = useState(false);
+  const [selectedCase, setSelectedCase] = useState<UserRecord | null>(null);
+  const navigate = useNavigate();
 
-  const [assessmentData, setAssessmentData] = useState({
-    composition: "",
-    echogenicity: "",
-    shape: "",
-    margin: "",
-    echogenicFocii: "",
-    tiradsScore: "",
-    tiradsPoint: "",
-    biopsyNeedEvaluation: {
-      fnaNeeded: false,
-      normal: false,
-    },
-    biopsyPathologyExpectation: {
-      malign: false,
-      benign: false,
-    },
-  });
-  const toast = useRef<Toast>(null);
-  const mockResponseData = {
-    composition: "Solid and cystic",
-    echogenicity: "Hypoechoic",
-    shape: "Irregular",
-    margin: "Ill-defined",
-    echogenicFocii: "Present",
-    tiradsScore: "TR4",
-    tiradsPoint: "4",
-    biopsyNeedEvaluation: {
-      fnaNeeded: true,
-      normal: false,
-    },
-    biopsyPathologyExpectation: {
-      malign: false,
-      benign: true,
-    },
-  };
-  const handleInputChange = (field: string, value: string) => {
-    setAssessmentData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+  const openAssessment = (row: UserRecord) => {
+    setSelectedCase(row);
+    setAssessmentDialogVisible(true);
+     navigate(`/patient-image-assessment/${row.id}`);
   };
 
-  const handleCheckboxChange = (
-    category: string,
-    field: string,
-    checked: boolean
-  ) => {
-    setAssessmentData((prev) => ({
-      ...prev,
-      [category]: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ...(prev[category as keyof typeof prev] as any),
-        [field]: checked,
-      },
-    }));
-  };
-
-  const handleSendToTraick = () => {
-    if (!protocolNumber.trim()) {
-      toast.current?.show({
-        severity: "error",
-        summary: "Error",
-        detail: "Please enter a protocol number",
-        life: 3000,
-      });
-
-      return;
-    }
-    console.log("Sending to TRAICK dev with protocol:", protocolNumber);
-    toast.current?.show({
-      severity: "success",
-      summary: "Success",
-      detail: "Protocol send successfully successfully",
-      life: 3000,
-    });
-
-    // Simulate sending data and receiving results
-    setIsLoading(true);
-    console.log("Sending to TRAICK dev with protocol:", protocolNumber);
-
-    // Simulate API call delay
-    setTimeout(() => {
-      setAssessmentData(mockResponseData);
-      setShowResults(true);
-      setIsLoading(false);
-    }, 2000);
-  };
-  // New function to save assessment
-  const handleSaveAssessment = async () => {
-    if (!protocolNumber.trim()) {
-      toast.current?.show({
-        severity: "error",
-        summary: "Error",
-        detail: "Protocol number is required to save assessment",
-        life: 3000,
-      });
-      return;
-    }
-
-    setIsSaving(true);
-
-    try {
-      // Replace with your actual API endpoint
-      const response = await fetch(`/api/patients/${protocolNumber}/assessments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          protocolNumber,
-          assessmentData,
-          timestamp: new Date().toISOString(),
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save assessment');
-      }
-
-      const result = await response.json();
-
-      toast.current?.show({
-        severity: "success",
-        summary: "Success",
-        detail: "Assessment saved successfully to patient record",
-        life: 3000,
-      });
-
-      console.log("Assessment saved:", result);
-    } catch (error) {
-      console.error("Error saving assessment:", error);
-      toast.current?.show({
-        severity: "error",
-        summary: "Error",
-        detail: "Failed to save assessment. Please try again.",
-        life: 3000,
-      });
-    } finally {
-      setIsSaving(false);
+  const handleAssessmentComplete = (assessmentData: any) => {
+    // Update the status to "Completed" when assessment is saved
+    if (selectedCase) {
+      setUserRecords((prev) =>
+        prev.map((record) =>
+          record.id === selectedCase.id
+            ? { ...record, status: "Completed" }
+            : record
+        )
+      );
     }
   };
+
+  const clearFilters = () => {
+    dt.current?.reset();
+    setGlobalFilter("");
+  };
+
+  const statusBodyTemplate = (rowData: UserRecord) => {
+    return (
+      <Tag
+        className={`predict-tag ${getTagClass(rowData.status)}`}
+        value={rowData.status}
+        severity={getSeverity(rowData.status)}
+      />
+    );
+  };
+
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <Toast ref={toast} />
-
-        {/* Header */}
-        <h1 className="text-2xl font-bold text-gray-900">
-          {" "}
-          Image Assessment Module{" "}
-        </h1>
-
-        {/* Input Section */}
-        <Panel className="panel-border p-0">
-          <div className="border border-gray-300">
-            <div className="grid grid-cols-2 border-b border-gray-300">
-              <div className="p-4 border-r border-gray-300">
-                <label
-                  htmlFor="protocol-number"
-                  className="text-sm font-medium text-black-700"
-                >
-                  Enter the Protocol Number:
-                </label>
-              </div>
-              <div className="p-4">
-                <InputText
-                  id="protocol-number"
-                  value={protocolNumber}
-                  onChange={(e) => setProtocolNumber(e.target.value)}
-                  placeholder="text"
-                  className="w-full"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2">
-              <div className="p-4 border-r border-gray-300">
-                <span className="text-sm font-medium text-gray-700">
-                  Click to send the TRAICK dev.
-                </span>
-              </div>
-              <div className="p-4">
-                <Button
-                  className=" w-full"
-                  disabled={isLoading}
-                  label={isLoading ? "Sending..." : "Send to TRAICK"}
-                  severity="secondary"
-                  onClick={handleSendToTraick}
-                />
-              </div>
-            </div>
-          </div>
-        </Panel>
-        {/*        <LocalStoreInspector />  */}
-        {showResults && (
-          <div className="space-y-4">
-            <p className="text-lg italic text-gray-900">
-              The results of the image assessment are as follows:
-            </p>
-
-            <Panel className="p-0">
-              <div className="border border-gray-300">
-                {/* Text Input Fields */}
-                {[
-                  { label: "Composition", field: "composition" },
-                  { label: "Echogenicity", field: "echogenicity" },
-                  { label: "Shape", field: "shape" },
-                  { label: "Margin", field: "margin" },
-                  { label: "Echogenic Focii", field: "echogenicFocii" },
-                  { label: "TIRADS Score", field: "tiradsScore" },
-                  { label: "TIRADS Point", field: "tiradsPoint" },
-                ].map((item, index) => (
-                  <div
-                    key={item.field}
-                    className={`grid grid-cols-2 ${
-                      index < 6 ? "border-b border-gray-300" : ""
-                    }`}
-                  >
-                    <div className="p-4 border-r border-gray-300 ">
-                      <label
-                        htmlFor={item.field}
-                        className="text-sm font-medium text-black-700"
-                      >
-                        {item.label}
-                      </label>
-                    </div>
-                    <div className="p-4">
-                      <InputText
-                        id={item.field}
-                        value={
-                          assessmentData[
-                            item.field as keyof typeof assessmentData
-                          ] as string
-                        }
-                        onChange={(e) =>
-                          handleInputChange(item.field, e.target.value)
-                        }
-                        placeholder="text"
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-                ))}
-
-                {/* Biopsy Need Evaluation */}
-                <div className="grid grid-cols-2 border-b border-t border-gray-300">
-                  <div className="p-4 border-r border-gray-300 ">
-                    <label className="text-sm font-medium text-gray-700">
-                      Biopsy need evaluation
-                    </label>
-                  </div>
-                  <div className="p-4 flex items-center gap-6">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        inputId="fna-needed"
-                        checked={assessmentData.biopsyNeedEvaluation.fnaNeeded}
-                        onChange={(e) =>
-                          handleCheckboxChange(
-                            "biopsyNeedEvaluation",
-                            "fnaNeeded",
-                            e.checked || false
-                          )
-                        }
-                      />
-                      <label
-                        htmlFor="fna-needed"
-                        className="text-sm text-gray-700"
-                      >
-                        FNA needed
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        inputId="normal"
-                        checked={assessmentData.biopsyNeedEvaluation.normal}
-                        onChange={(e) =>
-                          handleCheckboxChange(
-                            "biopsyNeedEvaluation",
-                            "normal",
-                            e.checked || false
-                          )
-                        }
-                      />
-                      <label htmlFor="normal" className="text-sm text-gray-700">
-                        Normal
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Biopsy Pathology Expectation */}
-                <div className="grid grid-cols-2">
-                  <div className="p-4 border-r border-gray-300">
-                    <label className="text-sm font-medium text-gray-700">
-                      Biopsy pathology expectation
-                    </label>
-                  </div>
-                  <div className="p-4 flex items-center gap-6">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        inputId="malign"
-                        checked={
-                          assessmentData.biopsyPathologyExpectation.malign
-                        }
-                        onChange={(e) =>
-                          handleCheckboxChange(
-                            "biopsyPathologyExpectation",
-                            "malign",
-                            e.checked || false
-                          )
-                        }
-                      />
-                      <label htmlFor="malign" className="text-sm text-gray-700">
-                        Malign
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        inputId="benign"
-                        checked={
-                          assessmentData.biopsyPathologyExpectation.benign
-                        }
-                        onChange={(e) =>
-                          handleCheckboxChange(
-                            "biopsyPathologyExpectation",
-                            "benign",
-                            e.checked || false
-                          )
-                        }
-                      />
-                      <label htmlFor="benign" className="text-sm text-gray-700">
-                        Benign
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Panel>
-            {/* Add Save Button */}
-            <div className="flex justify-end">
-              <Button
-                label={isSaving ? "Saving..." : "Save Assessment"}
-                icon="pi pi-save"
-                onClick={handleSaveAssessment}
-                disabled={isSaving}
-                severity="success"
-                className="px-6 py-2 rounded-md p-button-secondary"
-              />
-            </div>
-          </div>
-        )}
+    <div>
+      <div className="flex items-center justify-between mt-1.5 mb-4">
+        <h2 className="text-2xl font-bold">AI Image Assessment</h2>
+        <div className="flex flex-col md:flex-row gap-3 lg:items-end lg:justify-end justify-center items-initial mb-4">
+          <IconField iconPosition="left">
+            <InputIcon className="pi pi-search" />
+            <InputText
+              type="search"
+              placeholder="Search..."
+              value={globalFilter}
+              onInput={(e) =>
+                setGlobalFilter((e.target as HTMLInputElement).value)
+              }
+            />
+          </IconField>
+          <Button
+            label="Clear"
+            icon="pi pi-filter-slash"
+            className="p-button-secondary"
+            onClick={clearFilters}
+          />
+        </div>
       </div>
+
+      <DataTable
+        value={userRecords}
+        responsiveLayout="scroll"
+        className="p-datatable-striped p-datatable-hoverable shadow rounded"
+        ref={dt}
+        paginator
+        rows={10}
+        dataKey="id"
+        selectionMode="checkbox"
+        selection={selectedUserRecords}
+        onSelectionChange={(e) => setSelectedUserRecords(e.value)}
+        paginatorLeft={
+          <span className="text-sm text-gray-600">
+            Total Records: {userRecords.length}
+          </span>
+        }
+        paginatorRight={<span />}
+        globalFilter={globalFilter}
+        tableStyle={{
+          minWidth: "50rem",
+          maxWidth: "100%",
+          overflowX: "auto",
+          fontSize: "12px",
+        }}
+      >
+        <Column selectionMode="multiple" headerStyle={{ width: "3rem" }} />
+        <Column field="id" header="ID" sortable style={{ minWidth: "3rem" }} />
+        <Column field="name" header="Name" sortable style={{ minWidth: "8rem" }} />
+        <Column field="age" header="Age" style={{ minWidth: "8rem" }} />
+        <Column field="country" header="Country" sortable style={{ minWidth: "8rem" }} />
+        <Column field="city" header="City" sortable style={{ minWidth: "8rem" }} />
+        <Column field="weight" header="Weight" sortable style={{ minWidth: "8rem" }} />
+        <Column field="lenght" header="Lenght" sortable style={{ minWidth: "8rem" }} />
+        <Column field="create_date" header="Create Date" sortable style={{ minWidth: "8rem" }} />
+        <Column field="modify_date" header="Modify Date" sortable style={{ minWidth: "8rem" }} />
+        <Column field="status" header="Status" sortable style={{ minWidth: "8rem" }} body={statusBodyTemplate} />
+        <Column
+          header="Actions"
+          body={(rowData) => (
+            <Button
+              disabled={rowData.status === "Completed"}
+              label={rowData.status === "Completed" ? "Completed" : "Complete"}
+              text
+              className="p-button-sm"
+              onClick={() => openAssessment(rowData)}
+            />
+          )}
+          style={{ minWidth: "8rem" }}
+        />
+      </DataTable>
+
+      <ImageAssessmentDialog
+        visible={assessmentDialogVisible}
+        onHide={() => {
+          setAssessmentDialogVisible(false);
+          setSelectedCase(null);
+        }}
+        patientId={selectedCase?.id || null}
+        onComplete={handleAssessmentComplete}
+      />
     </div>
   );
 }
+

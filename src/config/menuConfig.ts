@@ -25,8 +25,8 @@ export const menuConfig: MenuItem[] = [
     description: 'Review radiologist assessments'
   },
   {
-    label: 'Image Assessment',
-    path: '/image-assessment',
+    label: 'AI Image Assessment',
+    path: '/ai-assessment',
     roles: ['radiologist'],
     icon: 'pi pi-images',
     description: 'Assess and evaluate medical images'

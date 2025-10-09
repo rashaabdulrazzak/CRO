@@ -16,6 +16,7 @@ import DataDownload from '../../pages/DataDownload';
 import LockedData from '../../pages/LockedData';
 import PathologyResults from '../../pages/PathologyResults';
 import RadiologistAssessment  from '../../pages/RadiologistAssessment';
+import PatientImageAssessment from '../../pages/PatientImageAssessment';
 
 const LayoutComponent = () => {
   const location = useLocation()
@@ -33,13 +34,14 @@ const LayoutComponent = () => {
         <Route path="/roles" element={<Roles />}></Route>
         
         <Route path="/image-evaluation" element={<ImageEvaluation />}></Route>
-        <Route path="/image-assessment" element={<ImageAssessment />}></Route>
+        <Route path="/ai-assessment" element={<ImageAssessment />}></Route>
         <Route path="/radiologist-assessment" element={<RadiologistAssessment />}></Route>
          <Route path="/approval-cases" element={<ApprovalCases />}></Route>
          <Route path="/monitor-home" element={<MonitorHome />}></Route> 
          <Route path="/data-download" element={<DataDownload />}></Route> 
          <Route path="/locked-data" element={<LockedData />}></Route> 
          <Route path="/pathology-results" element={<PathologyResults />}></Route> 
+         <Route path="/patient-image-assessment/:userId" element={<PatientImageAssessment />}></Route> 
 
       </Routes>
       </main>
