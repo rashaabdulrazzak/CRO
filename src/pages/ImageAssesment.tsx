@@ -10,6 +10,8 @@ export default function ImageAssessment() {
   const [protocolNumber, setProtocolNumber] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+
   const [assessmentData, setAssessmentData] = useState({
     composition: "",
     echogenicity: "",
@@ -97,7 +99,60 @@ export default function ImageAssessment() {
       setIsLoading(false);
     }, 2000);
   };
+  // New function to save assessment
+  const handleSaveAssessment = async () => {
+    if (!protocolNumber.trim()) {
+      toast.current?.show({
+        severity: "error",
+        summary: "Error",
+        detail: "Protocol number is required to save assessment",
+        life: 3000,
+      });
+      return;
+    }
 
+    setIsSaving(true);
+
+    try {
+      // Replace with your actual API endpoint
+      const response = await fetch(`/api/patients/${protocolNumber}/assessments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          protocolNumber,
+          assessmentData,
+          timestamp: new Date().toISOString(),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save assessment');
+      }
+
+      const result = await response.json();
+
+      toast.current?.show({
+        severity: "success",
+        summary: "Success",
+        detail: "Assessment saved successfully to patient record",
+        life: 3000,
+      });
+
+      console.log("Assessment saved:", result);
+    } catch (error) {
+      console.error("Error saving assessment:", error);
+      toast.current?.show({
+        severity: "error",
+        summary: "Error",
+        detail: "Failed to save assessment. Please try again.",
+        life: 3000,
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -294,6 +349,17 @@ export default function ImageAssessment() {
                 </div>
               </div>
             </Panel>
+            {/* Add Save Button */}
+            <div className="flex justify-end">
+              <Button
+                label={isSaving ? "Saving..." : "Save Assessment"}
+                icon="pi pi-save"
+                onClick={handleSaveAssessment}
+                disabled={isSaving}
+                severity="success"
+                className="px-6 py-2 rounded-md p-button-secondary"
+              />
+            </div>
           </div>
         )}
       </div>

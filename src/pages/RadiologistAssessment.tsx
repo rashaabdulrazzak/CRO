@@ -8,11 +8,7 @@ import "primereact/resources/primereact.min.css";
 import { Tag } from "primereact/tag";
 import { IconField } from "primereact/iconfield";
 import { InputIcon } from "primereact/inputicon";
-import { AddNewPredictDialog } from "../components/AddNewPredictDialog";
-import ActionDialog from "../components/ActionDialog";
-import { defaultQConfig } from "../constants/constant";
-import { useAuth } from "../components/AuthContext";
-import type { UserRecord, ActionDialogPayload } from "../types";
+import type { UserRecord } from "../types";
 import { getSeverity, getTagClass } from "../helpers/helper";
 import RadiologistAssessmentDialog from "../components/RadiologistAssessmentDialog";
 
@@ -82,7 +78,6 @@ const initialUserRecord: UserRecord[] = [
 
 export default function RadiologistAssessment() {
   const dt = useRef<DataTable<UserRecord[]>>(null); // ref to DataTable
-  const { user } = useAuth();
   const recentUserRecord = initialUserRecord; // In real app, fetch this from API
 
   const [selectedUserRecords, setSelectedUserRecords] = useState<UserRecord[]>(
@@ -91,10 +86,7 @@ export default function RadiologistAssessment() {
 
   // const [ageOrder, setAgeOrder] = useState<1 | -1>(1);
   // const [dateOrder, setDateOrder] = useState<1 | -1>(1);
-  const [dialogVisible, setDialogVisible] = useState(false);
   //  const [isEdit, setIsEdit] = useState(false);
-  const [actionDialogVisible, setActionDialogVisible] = useState(false);
-  const [actionTarget, setActionTarget] = useState<UserRecord | null>(null);
     const [globalFilter, setGlobalFilter] = useState<string>("");
 
   const [assessmentDialogVisible, setAssessmentDialogVisible] = useState(false);
@@ -218,23 +210,7 @@ export default function RadiologistAssessment() {
     );
   };
 
-  const openAction = (row: UserRecord) => {
-    setActionTarget(row);
-    setActionDialogVisible(true);
-  };
-
-  const handleActionSubmit = (payload: ActionDialogPayload) => {
-    // TODO: send payload to your API or update local state
-    console.log("Submit payload:", payload);
-
-    setActionDialogVisible(false);
-    setActionTarget(null);
-  };
-
-  const handleActionCancel = () => {
-    setActionDialogVisible(false);
-    setActionTarget(null);
-  };
+ 
   return (
     <div>
       <div className="flex items-center justify-between mt-1.5 mb-4">
@@ -359,20 +335,8 @@ export default function RadiologistAssessment() {
         />
       </DataTable>
 
-      <ActionDialog
-        visible={actionDialogVisible}
-        target={actionTarget ?? undefined}
-        onSubmit={handleActionSubmit}
-        onCancel={handleActionCancel}
-        qConfig={defaultQConfig} // or pass your own config
-        width="48rem" // optional
-      />
-
-      <AddNewPredictDialog
-        visible={dialogVisible}
-        onHide={() => setDialogVisible(false)}
-        currentRole={user?.role || "patolog_coordinator"}
-      />
+    
+      
        <RadiologistAssessmentDialog
         visible={assessmentDialogVisible}
         onHide={() => {
