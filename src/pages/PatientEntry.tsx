@@ -38,6 +38,7 @@ export default function PatientEntry() {
     setFormData(prev => ({ ...prev, [field]: value ?? '' }));
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleFileSelect = (event: any) => {
     // event.files contains the selected files
     const files: File[] = Array.from(event.files || []);

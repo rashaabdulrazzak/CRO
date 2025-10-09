@@ -245,7 +245,6 @@ console.log(currentRole)
 
   const [patientId, setPatientId] = useState<number | null>(null);
   const [caseId, setCaseId] = useState<number | null>(null);
-  const [selectedRadiologist, setSelectedRadiologist] = useState<string>(radiologistOptions[0].value);
   const [selectedRadiologists, setSelectedRadiologists] = useState<string[]>([]);
   const [isRadiologistInvalid, setIsRadiologistInvalid] = useState(false);
   // ---- load draft + revive dates
@@ -266,7 +265,7 @@ console.log(currentRole)
       setUploadedPhotos(d.uploadedPhotos || []);
       setPatientId(d.patientId ?? null);
       setCaseId(d.caseId ?? null);
-      setSelectedRadiologist(d.selectedRadiologist || radiologistOptions[0].value);
+      // setSelectedRadiologist(d.selectedRadiologist || radiologistOptions[0].value);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

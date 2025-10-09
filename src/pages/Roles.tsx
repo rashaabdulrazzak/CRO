@@ -141,6 +141,7 @@ const Roles: React.FC = () => {
   // Pagination
   const [first, setFirst] = useState(0);
   const [rows, setRows] = useState(10);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onPage = (e: any) => {
     setFirst(e.first);
     setRows(e.rows);

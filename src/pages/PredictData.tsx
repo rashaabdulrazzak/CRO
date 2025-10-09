@@ -31,12 +31,15 @@ const getPatientsFromStorage = (): UserRecord[] => {
     const formList = forms ? JSON.parse(forms) : [];
     
     // Map localStorage data to UserRecord format
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return patientList.map((patient: any) => {
       // Find associated case
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const patientCase = caseList.find((c: any) => c.patientId === patient.id);
       
       // Find associated form
       const patientForm = patientCase 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ? formList.find((f: any) => f.caseId === patientCase.id && f.type === "CRF01-visit")
         : null;
       

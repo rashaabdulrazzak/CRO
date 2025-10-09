@@ -31,8 +31,10 @@ export default function ImageAssessment() {
      navigate(`/patient-image-assessment/${row.id}`);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleAssessmentComplete = (assessmentData: any) => {
     // Update the status to "Completed" when assessment is saved
+    console.log('Assessment completed for patient:', assessmentData);
     if (selectedCase) {
       setUserRecords((prev) =>
         prev.map((record) =>
