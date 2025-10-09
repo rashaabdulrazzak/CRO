@@ -66,20 +66,7 @@ export const menuConfig: MenuItem[] = [
     icon: 'pi pi-desktop',
     description: 'Monitor system dashboard'
   },
-  {
-    label: 'Evaluation',
-    path: '/image-evaluation',
-    roles: ['radiologist'],
-    icon: 'pi pi-star',
-    description: 'Evaluate image quality and findings'
-  },
-  {
-    label: 'Evaluation',
-    path: '/image-evaluation',
-    roles: ['radiologist'],
-    icon: 'pi pi-star',
-    description: 'Evaluate image quality and findings'
-  },
+
   {
     label: 'Download Data',
     path: '/data-download',
