@@ -89,7 +89,7 @@ export default function LockedData() {
     console.log('Loaded patients:', patients);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <Toast ref={toastRef} position="top-right" />
 
       {/* Header */}
@@ -138,7 +138,7 @@ export default function LockedData() {
         {/* Bulk Actions */}
         <Card className="mb-6" title={<span className="font-semibold">Bulk Actions</span>}>
           <div className="flex gap-4">
-            <Button onClick={lockAllData} severity="danger" icon="pi pi-lock" label="Lock All Data" />
+            <Button onClick={lockAllData} severity="danger" className='add-btn' icon="pi pi-lock" label="Lock All Data" />
             <Button onClick={unlockAllData} outlined icon="pi pi-lock-open" label="Unlock All Data" />
           </div>
           <div className="mt-4">
@@ -172,7 +172,7 @@ export default function LockedData() {
                       </div>
                       <div>
                         {patient.isLocked ? (
-                          <Tag value="Locked" severity="danger" />
+                          <Tag value="Locked" severity="danger" className='locked'  />
                         ) : (
                           <Tag value="Unlocked" severity="success" />
                         )}

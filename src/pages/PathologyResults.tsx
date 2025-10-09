@@ -157,7 +157,7 @@ export default function PathologyResults() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen ">
      <Toast ref={toast} />
 
       {/* Header */}
