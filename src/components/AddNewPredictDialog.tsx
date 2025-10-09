@@ -12,6 +12,7 @@ import { FileUpload } from "primereact/fileupload";
 import { Toast } from "primereact/toast";
 import { getNextImageNumber } from "../lib/mockData";
 import { CriteriaItem } from "./CriteriaItem";
+import { MultiSelect } from "primereact/multiselect";
 
 // ================== CONFIG ==================
 const USE_BACKEND = false; // switch to true when your API is ready
@@ -80,12 +81,16 @@ type ExclusionForm = {
 };
 
 
+
 // step 6 
- const radiologistOptions = [
-    { label: 'Radiologist 1', value: 'radiologist1' },
-    { label: 'Radiologist 2', value: 'radiologist2' },
-    { label: 'Radiologist 3', value: 'radiologist3' }
-  ];
+const radiologistOptions = [
+  { label: 'Radiologist 1', value: 'radiologist1' },
+  { label: 'Radiologist 2', value: 'radiologist2' },
+  { label: 'Radiologist 3', value: 'radiologist3' },
+  { label: 'Radiologist 4', value: 'radiologist4' },
+  { label: 'Radiologist 5', value: 'radiologist5' },
+  { label: 'Radiologist 6', value: 'radiologist6' },
+];
 
 type UploadedPhoto = string; // dataURL or stub URL
 
@@ -241,7 +246,8 @@ console.log(currentRole)
   const [patientId, setPatientId] = useState<number | null>(null);
   const [caseId, setCaseId] = useState<number | null>(null);
   const [selectedRadiologist, setSelectedRadiologist] = useState<string>(radiologistOptions[0].value);
-
+  const [selectedRadiologists, setSelectedRadiologists] = useState<string[]>([]);
+  const [isRadiologistInvalid, setIsRadiologistInvalid] = useState(false);
   // ---- load draft + revive dates
   useEffect(() => {
     const d = lsGet<any | null>(draftKey, null);
@@ -276,9 +282,10 @@ console.log(currentRole)
       uploadedPhotos,
       patientId,
       caseId,
-      selectedRadiologist
+      selectedRadiologists, // Add this
+     isRadiologistInvalid   // Add this
     });
-  }, [activeIndex, demographic, medical, inclusion, exclusion, uploadedPhotos,selectedRadiologist, patientId, caseId]);
+  }, [activeIndex, demographic, medical, inclusion, exclusion, uploadedPhotos,selectedRadiologists,isRadiologistInvalid, patientId, caseId]);
 
   // ---- localStorage “collections”
   const patientsKey = "app.patients";
@@ -321,6 +328,24 @@ console.log(currentRole)
     { label: "Choose Radiologist" },
   ];
 
+  // Handler for radiologist selection
+  const handleRadiologistChange = (e: any) => {
+    const newSelection = e.value;
+    
+    if (newSelection.length > 3) {
+      toast.current?.show({
+        severity: 'warn',
+        summary: 'Selection Limit',
+        detail: 'You can only select exactly 3 radiologists',
+        life: 3000
+      });
+      return;
+    }
+    
+    setSelectedRadiologists(newSelection);
+    setIsRadiologistInvalid(newSelection.length !== 3);
+  };
+
   // Role per step (from protocol)
   // const stepRole = ["Hekim", "Koordinatör", "Hekim", "Hekim", "Koordinatör", "Hekim"] as const;
 
@@ -346,6 +371,8 @@ console.log(currentRole)
     setUploadedPhotos([]);
     setPatientId(null);
     setCaseId(null);
+    setSelectedRadiologists([]); 
+    setIsRadiologistInvalid(false); 
     localStorage.removeItem(draftKey);
   };
 
@@ -451,20 +478,24 @@ console.log(currentRole)
 
     // FINAL STEP 5 (Radiologist Selection): Validate and save EVERYTHING
     if (activeIndex === 5) {
-      if (!selectedRadiologist) {
-        showError("Please select a radiologist.");
+       if (selectedRadiologists.length !== 3) {
+        showError("Please select exactly 3 radiologists.");
         return;
       }
 
-      // NOW save all data since all steps are complete
-      const base = normalizeVolunteerCode(demographic.volunteerCode);
-      const caseImageId = makeImageId(base, 0);
-      const localCase = createCaseLocal({ patientId, imageId: caseImageId });
-      setCaseId(localCase.id);
+     // NOW save all data since all steps are complete
+  const base = normalizeVolunteerCode(demographic.volunteerCode);
+  const caseImageId = makeImageId(base, 0);
+  if (patientId == null) {
+    showError("Hasta bulunamadı. Lütfen baştan deneyin.");
+    return;
+  }
+  const localCase = createCaseLocal({ patientId: patientId, imageId: caseImageId });
+  setCaseId(localCase.id);
 
-      if (USE_BACKEND) {
-        await api("/cases", "POST", { patientId, imageId: caseImageId });
-      }
+  if (USE_BACKEND) {
+    await api("/cases", "POST", { patientId, imageId: caseImageId });
+  }
 
       // Uploads numbered TRxxxxx-01, -02, ...
       for (let i = 0; i < uploadedPhotos.length; i++) {
@@ -498,7 +529,8 @@ console.log(currentRole)
           q4: demographic.question4,
           q5: demographic.question5,
         },
-        selectedRadiologist: selectedRadiologist,  // Add radiologist to payload
+           selectedRadiologists: selectedRadiologists, // Array of 3 radiologist values
+
       };
       createFormLocal({ caseId: localCase.id, type: "CRF01-visit", version: "v1", data: visitPayload });
       if (USE_BACKEND) {
@@ -572,7 +604,7 @@ console.log(currentRole)
               placeholder="e.g., TR00001"
               className="w-full"
             />
-            <Button type="button" label="Generate" onClick={generateVolunteerId} className="shrink-0" />
+            <Button type="button" label="Generate" onClick={generateVolunteerId} className="shrink-0 p-button-secondary" />
           </div>
           <small className="text-gray-500">Format: TR + 5 digits (TR00001)</small>
         </div>
@@ -885,24 +917,42 @@ console.log(currentRole)
   };
 
 const renderAvailableRadiologist = () => {
+
   return (
-    <>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Choose Available Radiologist
-        </label>
-        <Dropdown
-          value={selectedRadiologist}
-          options={radiologistOptions}
-          onChange={(e) => setSelectedRadiologist(e.value)}
-          placeholder="Select a Radiologist"
-          className="w-48"
-          panelClassName="mt-1"
-        />
-      </div>
-    </>
+       <>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Choose Available Radiologists (Select Exactly 3) *
+          </label>
+          <MultiSelect
+            value={selectedRadiologists}
+            options={radiologistOptions}
+            onChange={handleRadiologistChange}
+            placeholder={`Select exactly 3 radiologists (${selectedRadiologists.length}/3 selected)`}
+            display="chip"
+            className={`w-full ${isRadiologistInvalid ? 'p-invalid' : ''}`}
+            panelClassName="mt-1"
+            maxSelectedLabels={3}
+            filter
+            showSelectAll={false}
+            invalid={isRadiologistInvalid}
+          />
+          {isRadiologistInvalid && selectedRadiologists.length < 3 && (
+            <small className="text-red-500">
+              Please select exactly 3 radiologists. Currently selected: {selectedRadiologists.length}
+            </small>
+          )}
+          {selectedRadiologists.length === 3 && (
+            <small className="text-green-600">
+              ✓ 3 radiologists selected
+            </small>
+          )}
+        </div>
+      </>
+
   );
 };
+
 
   // ================== SHELL ==================
   const headerElement = (
@@ -929,15 +979,10 @@ const renderAvailableRadiologist = () => {
         <Toast ref={toast} />
 
         {/* Steps + Role badge */}
-        <div className="mb-2">
+        <div className="mb-6">
           <Steps model={steps} activeIndex={activeIndex} className="custom-steps" />
         </div>
-        <div className="mb-6">
-          <span
-            className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium `}
-          >
-          </span>
-        </div>
+       
 
         {renderStepContent()}
 

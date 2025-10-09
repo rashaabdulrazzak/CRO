@@ -557,14 +557,14 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
               label="Cancel"
               icon="pi pi-times"
               onClick={onHide}
-              className="p-button-secondary"
+              className="px-6 py-2 text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
             />
             <Button
               label="Save Assessment"
               icon="pi pi-save"
               onClick={handleSaveAssessment}
               loading={isSaving}
-              className="p-button-success"
+              className="px-6 py-2 rounded-md p-button-secondary"
             />
           </div>
         }
