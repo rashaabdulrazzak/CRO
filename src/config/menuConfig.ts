@@ -20,28 +20,28 @@ export const menuConfig: MenuItem[] = [
   {
     label: 'Radiologist Assessment',
     path: '/radiologist-assessment',
-    roles: ['field_coordinator'],
+    roles: ['radiologist'],
     icon: 'pi pi-user-edit',
     description: 'Review radiologist assessments'
   },
   {
     label: 'AI Image Assessment',
     path: '/ai-assessment',
-    roles: ['radiologist'],
+    roles: ['field_coordinator','monitor'],
     icon: 'pi pi-images',
     description: 'Assess and evaluate medical images'
   },
   {
     label: 'Pathology of Cases',
     path: '/pathology-results',
-    roles: [ 'radiologist', 'monitor'],
+    roles: [ 'radiologist', 'monitor','patolog_coordinator'],
     icon: 'pi pi-file',
     description: 'View pathology results and reports'
   },
   {
     label: 'Approval of Cases',
     path: '/approval-cases',
-    roles: ['monitor','patolog_coordinator'],
+    roles: ['monitor','radiologist','field_coordinator'],
     icon: 'pi pi-check-circle',
     description: 'Approve and validate cases'
   },
@@ -59,13 +59,13 @@ export const menuConfig: MenuItem[] = [
     icon: 'pi pi-id-card',
     description: 'Configure user roles and permissions'
   },
-  {
+/*   {
     label: 'Monitor',
     path: '/monitor-home',
     roles: ['monitor'],
     icon: 'pi pi-desktop',
     description: 'Monitor system dashboard'
-  },
+  }, */
 
   {
     label: 'Download Data',
