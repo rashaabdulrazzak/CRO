@@ -6,7 +6,7 @@ import type { DemographicForm, Sex } from '../../types';
 // import { normalizeVolunteerCode } from '../../helpers/helper';
 import { Button } from 'primereact/button';
 import { RadioButton } from 'primereact/radiobutton';
-import 'primeflex/primeflex.css';
+//import 'primeflex/primeflex.css';
 
 interface DemographicFormStepProps {
   demographic: DemographicForm;

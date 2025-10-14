@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Dialog } from "primereact/dialog";
 import { Checkbox } from "primereact/checkbox";
 import { RadioButton } from "primereact/radiobutton";
@@ -23,7 +23,8 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
 }) => {
   const toast = useRef<Toast>(null);
   
-  const [aiDiagnosticsData, setAiDiagnosticsData] = useState({
+  // Define initial/default state
+  const getInitialState = () => ({
     composition: "cystic",
     echogenicity: "anechoic",
     shape: "widerThanTall",
@@ -43,12 +44,129 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
     },
   });
 
+  const [aiDiagnosticsData, setAiDiagnosticsData] = useState(getInitialState());
   const [isSaving, setIsSaving] = useState(false);
 
-  // Load existing assessment data when dialog opens
+  // Calculate points based on ACR TI-RADS criteria
+  const calculateTotalPoints = useCallback (() => {
+    let total = 0;
+
+    // Composition points
+    switch (aiDiagnosticsData.composition) {
+      case "cystic":
+      case "spongioform":
+        total += 0;
+        break;
+      case "mixed":
+        total += 1;
+        break;
+      case "solid":
+        total += 2;
+        break;
+    }
+
+    // Echogenicity points
+    switch (aiDiagnosticsData.echogenicity) {
+      case "anechoic":
+        total += 0;
+        break;
+      case "hyperechoic":
+        total += 1;
+        break;
+      case "hypoechoic":
+        total += 2;
+        break;
+      case "veryHypoechoic":
+        total += 3;
+        break;
+    }
+
+    // Shape points
+    switch (aiDiagnosticsData.shape) {
+      case "widerThanTall":
+        total += 0;
+        break;
+      case "tallerThanWide":
+        total += 3;
+        break;
+    }
+
+    // Margin points
+    switch (aiDiagnosticsData.margin) {
+      case "smooth":
+      case "illDefined":
+        total += 0;
+        break;
+      case "lobular":
+        total += 2;
+        break;
+      case "extraThyroidal":
+        total += 3;
+        break;
+    }
+
+    // Echogenic Foci points (can be multiple)
+    if (aiDiagnosticsData.echogenicFocii.noneOrLarge) {
+      total += 0;
+    }
+    if (aiDiagnosticsData.echogenicFocii.macrocalcifications) {
+      total += 1;
+    }
+    if (aiDiagnosticsData.echogenicFocii.peripheral) {
+      total += 2;
+    }
+    if (aiDiagnosticsData.echogenicFocii.punctate) {
+      total += 3;
+    }
+
+    return total;
+  }, [aiDiagnosticsData]);
+
+  // Determine TR level based on total points
+  const determineTRLevel = (totalPoints: number) => {
+    if (totalPoints === 0) return "tr1";
+    if (totalPoints === 2) return "tr2";
+    if (totalPoints === 3) return "tr3";
+    if (totalPoints >= 4 && totalPoints <= 6) return "tr4";
+    if (totalPoints >= 7) return "tr5";
+    return "tr1";
+  };
+
+  // Update TR checkboxes whenever selections change
+  useEffect(() => {
+    const totalPoints = calculateTotalPoints();
+    const trLevel = determineTRLevel(totalPoints);
+
+    // Reset all TR checkboxes
+    const updatedPoints = {
+      tr1: false,
+      tr2: false,
+      tr3: false,
+      tr4: false,
+      tr5: false,
+    };
+
+    // Set the appropriate TR level
+    updatedPoints[trLevel as keyof typeof updatedPoints] = true;
+
+    setAiDiagnosticsData((prev) => ({
+      ...prev,
+      points: updatedPoints,
+    }));
+  }, [
+    aiDiagnosticsData.composition,
+    aiDiagnosticsData.echogenicity,
+    aiDiagnosticsData.shape,
+    aiDiagnosticsData.margin,
+    aiDiagnosticsData.echogenicFocii,
+    calculateTotalPoints,
+  ]);
+
+  // Load existing assessment data when dialog opens OR reset to default
   useEffect(() => {
     if (visible && (caseId || volunteerCode)) {
       const existingAssessments = localStorage.getItem("app.RadiologistAssessments");
+      
       if (existingAssessments) {
         const assessmentsList = JSON.parse(existingAssessments);
         const existingAssessment = assessmentsList.find(
@@ -56,6 +174,7 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
         );
         
         if (existingAssessment) {
+          // Load existing assessment
           setAiDiagnosticsData({
             composition: existingAssessment.composition || "cystic",
             echogenicity: existingAssessment.echogenicity || "anechoic",
@@ -75,10 +194,27 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
               tr5: false,
             },
           });
+        } else {
+          // No existing assessment found - reset to default
+          setAiDiagnosticsData(getInitialState());
         }
+      } else {
+        // No assessments in localStorage - reset to default
+        setAiDiagnosticsData(getInitialState());
       }
+    } else if (visible) {
+      // Dialog opened without caseId/volunteerCode - reset to default
+      setAiDiagnosticsData(getInitialState());
     }
   }, [visible, caseId, volunteerCode]);
+
+  // Reset state when dialog closes
+  useEffect(() => {
+    if (!visible) {
+      // Reset to initial state when dialog is closed
+      setAiDiagnosticsData(getInitialState());
+    }
+  }, [visible]);
 
   const handleRadioChange = (section: string, value: string) => {
     setAiDiagnosticsData((prev) => ({
@@ -105,26 +241,11 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
     try {
       setIsSaving(true);
 
-      const hasSelectedPoint = Object.values(aiDiagnosticsData.points).some(val => val === true);
-      if (!hasSelectedPoint) {
-        showToast("error", "Validation Error", "Please select at least one point (TR1-TR5)");
-        setIsSaving(false);
-        return;
-      }
-
-      const calculatePoints = () => {
-        let total = 0;
-        if (aiDiagnosticsData.points.tr1) total += 0;
-        if (aiDiagnosticsData.points.tr2) total += 2;
-        if (aiDiagnosticsData.points.tr3) total += 3;
-        if (aiDiagnosticsData.points.tr4) total += 5;
-        if (aiDiagnosticsData.points.tr5) total += 7;
-        return total;
-      };
+      const totalPoints = calculateTotalPoints();
 
       const assessmentPayload = {
         ...aiDiagnosticsData,
-        totalPoints: calculatePoints(),
+        totalPoints: totalPoints,
         patientId: patientId,
         caseId: caseId,
         volunteerCode: volunteerCode,
@@ -170,377 +291,376 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
     }
   };
 
-  const renderAIDiagnostics = () => (
-    <div className="space-y-8">
-      {/* Composition Images */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Composition</h3>
-        <div className="grid grid-cols-4 gap-4 mb-6">
-          {[1, 2, 3, 4].map((imageNum) => (
-            <div key={imageNum} className="relative">
-              <img
-                src={`/medical-scan-.png?key=3u1ik&height=120&width=160&query=medical scan ${imageNum}`}
-                alt={`Medical scan ${imageNum}`}
-                className="w-full h-30 object-cover rounded-lg border border-gray-200"
-              />
-              <div className="absolute top-2 left-2 bg-black bg-opacity-50 rounded-full p-1">
-                <i className="pi pi-eye text-white text-xs"></i>
-                <span className="text-white text-xs ml-1">Preview</span>
+  const renderAIDiagnostics = () => {
+   // const totalPoints = calculateTotalPoints();
+   // const trLevel = determineTRLevel(totalPoints);
+
+    return (
+      <div className="space-y-8">
+        {/* Score Display */}
+        {/* <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h4 className="text-lg font-semibold text-gray-800">Current Score</h4>
+              <p className="text-sm text-gray-600">Based on ACR TI-RADS criteria</p>
+            </div>
+            <div className="text-right">
+              <div className="text-3xl font-bold text-blue-600">{totalPoints} points</div>
+              <div className="text-sm font-medium text-gray-700">
+                {trLevel.toUpperCase().replace("TR", "TR")}
               </div>
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
+        </div> */}
 
-      {/* Composition Radio Buttons */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Composition</h3>
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <RadioButton
-              inputId="cystic"
-              name="composition"
-              value="cystic"
-              onChange={(e) => handleRadioChange("composition", e.value)}
-              checked={aiDiagnosticsData.composition === "cystic"}
-            />
-            <label htmlFor="cystic" className="text-sm text-gray-700 flex items-center gap-2">
-              Cystic Or Almost Completely Cystic
-              <i className="pi pi-info-circle text-gray-400 text-xs"></i>
-            </label>
-          </div>
-          <div className="flex items-center gap-3">
-            <RadioButton
-              inputId="solid"
-              name="composition"
-              value="solid"
-              onChange={(e) => handleRadioChange("composition", e.value)}
-              checked={aiDiagnosticsData.composition === "solid"}
-            />
-            <label htmlFor="solid" className="text-sm text-gray-700 flex items-center gap-2">
-              Solid or Almost Completely Solid
-              <i className="pi pi-info-circle text-gray-400 text-xs"></i>
-            </label>
-          </div>
-          <div className="flex items-center gap-3">
-            <RadioButton
-              inputId="mixed"
-              name="composition"
-              value="mixed"
-              onChange={(e) => handleRadioChange("composition", e.value)}
-              checked={aiDiagnosticsData.composition === "mixed"}
-            />
-            <label htmlFor="mixed" className="text-sm text-gray-700 flex items-center gap-2">
-              Mixed Cystic and Solid
-              <i className="pi pi-info-circle text-gray-400 text-xs"></i>
-            </label>
-          </div>
-          <div className="flex items-center gap-3">
-            <RadioButton
-              inputId="spongioform"
-              name="composition"
-              value="spongioform"
-              onChange={(e) => handleRadioChange("composition", e.value)}
-              checked={aiDiagnosticsData.composition === "spongioform"}
-            />
-            <label htmlFor="spongioform" className="text-sm text-gray-700 flex items-center gap-2">
-              Spongioform
-              <i className="pi pi-info-circle text-gray-400 text-xs"></i>
-            </label>
+        {/* Composition Images */}
+        <div >
+          <h3 className="text-lg font-medium text-gray-800 mb-4">Composition</h3>
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            {[1, 2, 3, 4].map((imageNum) => (
+              <div key={imageNum} className="relative">
+                <img
+                  src={`/medical-scan-.png?key=3u1ik&height=120&width=160&query=medical scan ${imageNum}`}
+                  alt={`Medical scan ${imageNum}`}
+                  className="w-full h-30 object-cover rounded-lg border border-gray-200"
+                />
+                <div className="absolute top-2 left-2 bg-black bg-opacity-50 rounded-full p-1">
+                  <i className="pi pi-eye text-white text-xs"></i>
+                  <span className="text-white text-xs ml-1">Preview</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
 
-      {/* Echogenicity Radio Buttons */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Echogenicity</h3>
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <RadioButton
-              inputId="anechoic"
-              name="echogenicity"
-              value="anechoic"
-              onChange={(e) => handleRadioChange("echogenicity", e.value)}
-              checked={aiDiagnosticsData.echogenicity === "anechoic"}
-            />
-            <label htmlFor="anechoic" className="text-sm text-gray-700 flex items-center gap-2">
-              Anechoic
-              <i className="pi pi-info-circle text-gray-400 text-xs"></i>
-            </label>
-          </div>
-          <div className="flex items-center gap-3">
-            <RadioButton
-              inputId="hyperechoic"
-              name="echogenicity"
-              value="hyperechoic"
-              onChange={(e) => handleRadioChange("echogenicity", e.value)}
-              checked={aiDiagnosticsData.echogenicity === "hyperechoic"}
-            />
-            <label htmlFor="hyperechoic" className="text-sm text-gray-700 flex items-center gap-2">
-              Hyperechoic or Isoechoic
-              <i className="pi pi-info-circle text-gray-400 text-xs"></i>
-            </label>
-          </div>
-          <div className="flex items-center gap-3">
-            <RadioButton
-              inputId="hypoechoic"
-              name="echogenicity"
-              value="hypoechoic"
-              onChange={(e) => handleRadioChange("echogenicity", e.value)}
-              checked={aiDiagnosticsData.echogenicity === "hypoechoic"}
-            />
-            <label htmlFor="hypoechoic" className="text-sm text-gray-700 flex items-center gap-2">
-              Hypoechoic
-              <i className="pi pi-info-circle text-gray-400 text-xs"></i>
-            </label>
-          </div>
-          <div className="flex items-center gap-3">
-            <RadioButton
-              inputId="veryHypoechoic"
-              name="echogenicity"
-              value="veryHypoechoic"
-              onChange={(e) => handleRadioChange("echogenicity", e.value)}
-              checked={aiDiagnosticsData.echogenicity === "veryHypoechoic"}
-            />
-            <label htmlFor="veryHypoechoic" className="text-sm text-gray-700 flex items-center gap-2">
-              Very Hypoechoic
-              <i className="pi pi-info-circle text-gray-400 text-xs"></i>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      {/* Shape Radio Buttons */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Shape</h3>
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <RadioButton
-              inputId="widerThanTallShape"
-              name="shape"
-              value="widerThanTall"
-              onChange={(e) => handleRadioChange("shape", e.value)}
-              checked={aiDiagnosticsData.shape === "widerThanTall"}
-            />
-            <label htmlFor="widerThanTallShape" className="text-sm text-gray-700 flex items-center gap-2">
-              Wider Than Tall
-              <i className="pi pi-info-circle text-gray-400 text-xs"></i>
-            </label>
-          </div>
-          <div className="flex items-center gap-3">
-            <RadioButton
-              inputId="tallerThanWide"
-              name="shape"
-              value="tallerThanWide"
-              onChange={(e) => handleRadioChange("shape", e.value)}
-              checked={aiDiagnosticsData.shape === "tallerThanWide"}
-            />
-            <label htmlFor="tallerThanWide" className="text-sm text-gray-700 flex items-center gap-2">
-              Taller Than Wide
-              <i className="pi pi-info-circle text-gray-400 text-xs"></i>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      {/* Margin Radio Buttons */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Margin</h3>
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <RadioButton
-              inputId="smooth"
-              name="margin"
-              value="smooth"
-              onChange={(e) => handleRadioChange("margin", e.value)}
-              checked={aiDiagnosticsData.margin === "smooth"}
-            />
-            <label htmlFor="smooth" className="text-sm text-gray-700 flex items-center gap-2">
-              Smooth
-              <i className="pi pi-info-circle text-gray-400 text-xs"></i>
-            </label>
-          </div>
-          <div className="flex items-center gap-3">
-            <RadioButton
-              inputId="illDefined"
-              name="margin"
-              value="illDefined"
-              onChange={(e) => handleRadioChange("margin", e.value)}
-              checked={aiDiagnosticsData.margin === "illDefined"}
-            />
-            <label htmlFor="illDefined" className="text-sm text-gray-700 flex items-center gap-2">
-              Ill defined
-              <i className="pi pi-info-circle text-gray-400 text-xs"></i>
-            </label>
-          </div>
-          <div className="flex items-center gap-3">
-            <RadioButton
-              inputId="lobularOrIrregular"
-              name="margin"
-              value="lobular"
-              onChange={(e) => handleRadioChange("margin", e.value)}
-              checked={aiDiagnosticsData.margin === "lobular"}
-            />
-            <label htmlFor="lobularOrIrregular" className="text-sm text-gray-700 flex items-center gap-2">
-              Lobulated or irregular
-              <i className="pi pi-info-circle text-gray-400 text-xs"></i>
-            </label>
-          </div>
-          <div className="flex items-center gap-3">
-            <RadioButton
-              inputId="extraThyroidalExtension"
-              name="margin"
-              value="extraThyroidal"
-              onChange={(e) => handleRadioChange("margin", e.value)}
-              checked={aiDiagnosticsData.margin === "extraThyroidal"}
-            />
-            <label htmlFor="extraThyroidalExtension" className="text-sm text-gray-700 flex items-center gap-2">
-              Extra Thyroidal Extension
-              <i className="pi pi-info-circle text-gray-400 text-xs"></i>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      {/* Echogenic Focii */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Echogenic Focii</h3>
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <Checkbox
-              inputId="noneOrLargeCometTail"
-              checked={aiDiagnosticsData.echogenicFocii.noneOrLarge}
-              onChange={(e) =>
-                handleCheckboxChange("echogenicFocii", "noneOrLarge", e.checked ?? false)
-              }
-            />
-            <label htmlFor="noneOrLargeCometTail" className="text-sm text-gray-700 flex items-center gap-2">
-              None or Large Comet-Tail Artifacts
-              <i className="pi pi-info-circle text-gray-400 text-xs"></i>
-            </label>
-            <span className="text-sm text-gray-600">
-              {aiDiagnosticsData.echogenicFocii.noneOrLarge ? "Yes" : "No"}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Checkbox
-              inputId="macrocalcifications"
-              checked={aiDiagnosticsData.echogenicFocii.macrocalcifications}
-              onChange={(e) =>
-                handleCheckboxChange("echogenicFocii", "macrocalcifications", e.checked ?? false)
-              }
-            />
-            <label htmlFor="macrocalcifications" className="text-sm text-gray-700 flex items-center gap-2">
-              Macrocalcifications
-              <i className="pi pi-info-circle text-gray-400 text-xs"></i>
-            </label>
-            <span className="text-sm text-gray-600">
-              {aiDiagnosticsData.echogenicFocii.macrocalcifications ? "Yes" : "No"}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Checkbox
-              inputId="peripheralCalcifications"
-              checked={aiDiagnosticsData.echogenicFocii.peripheral}
-              onChange={(e) =>
-                handleCheckboxChange("echogenicFocii", "peripheral", e.checked ?? false)
-              }
-            />
-            <label htmlFor="peripheralCalcifications" className="text-sm text-gray-700 flex items-center gap-2">
-              Peripheral/RIM Calcifications
-              <i className="pi pi-info-circle text-gray-400 text-xs"></i>
-            </label>
-            <span className="text-sm text-gray-600">
-              {aiDiagnosticsData.echogenicFocii.peripheral ? "Yes" : "No"}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Checkbox
-              inputId="punctateEchogenicFoci"
-              checked={aiDiagnosticsData.echogenicFocii.punctate}
-              onChange={(e) =>
-                handleCheckboxChange("echogenicFocii", "punctate", e.checked ?? false)
-              }
-            />
-            <label htmlFor="punctateEchogenicFoci" className="text-sm text-gray-700 flex items-center gap-2">
-              Punctate Echogenic Foci
-              <i className="pi pi-info-circle text-gray-400 text-xs"></i>
-            </label>
-            <span className="text-sm text-gray-600">
-              {aiDiagnosticsData.echogenicFocii.punctate ? "Yes" : "No"}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Points */}
-      <div>
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Point</h3>
-        <div className="flex gap-4 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Checkbox
-              inputId="tr1"
-              checked={aiDiagnosticsData.points.tr1}
-              onChange={(e) =>
-                handleCheckboxChange("points", "tr1", e.checked ?? false)
-              }
-            />
-            <div className="bg-green-100 border border-green-300 rounded px-3 py-2 text-sm">
-              TR1 (0 point)
+        {/* Composition Radio Buttons */}
+        <div className="p-4 border border-gray-200 rounded-lg">
+          <h3 className="text-lg font-medium text-gray-800 mb-4">Composition</h3>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <RadioButton
+                inputId="cystic"
+                name="composition"
+                value="cystic"
+                onChange={(e) => handleRadioChange("composition", e.value)}
+                checked={aiDiagnosticsData.composition === "cystic"}
+              />
+              <label htmlFor="cystic" className="text-sm text-gray-700 flex items-center gap-2">
+                Cystic Or Almost Completely Cystic <span className="text-blue-300 font-light text-xs">(0 points)</span>
+                
+              </label>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              inputId="tr2"
-              checked={aiDiagnosticsData.points.tr2}
-              onChange={(e) =>
-                handleCheckboxChange("points", "tr2", e.checked ?? false)
-              }
-            />
-            <div className="bg-blue-100 border border-blue-300 rounded px-3 py-2 text-sm">
-              TR2 (2 points)
+            <div className="flex items-center gap-3">
+              <RadioButton
+                inputId="spongioform"
+                name="composition"
+                value="spongioform"
+                onChange={(e) => handleRadioChange("composition", e.value)}
+                checked={aiDiagnosticsData.composition === "spongioform"}
+              />
+              <label htmlFor="spongioform" className="text-sm text-gray-700 flex items-center gap-2">
+                Spongioform <span className="text-blue-300 font-light text-xs">(0 points)</span>
+                
+              </label>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              inputId="tr3"
-              checked={aiDiagnosticsData.points.tr3}
-              onChange={(e) =>
-                handleCheckboxChange("points", "tr3", e.checked ?? false)
-              }
-            />
-            <div className="bg-purple-100 border border-purple-300 rounded px-3 py-2 text-sm">
-              TR3 (3 points)
+            <div className="flex items-center gap-3">
+              <RadioButton
+                inputId="mixed"
+                name="composition"
+                value="mixed"
+                onChange={(e) => handleRadioChange("composition", e.value)}
+                checked={aiDiagnosticsData.composition === "mixed"}
+              />
+              <label htmlFor="mixed" className="text-sm text-gray-700 flex items-center gap-2">
+                Mixed Cystic and Solid <span className="text-blue-300 font-light text-xs">(1 point)</span>
+                
+              </label>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              inputId="tr4"
-              checked={aiDiagnosticsData.points.tr4}
-              onChange={(e) =>
-                handleCheckboxChange("points", "tr4", e.checked ?? false)
-              }
-            />
-            <div className="bg-yellow-100 border border-yellow-300 rounded px-3 py-2 text-sm">
-              TR4 (4-6 points)
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              inputId="tr5"
-              checked={aiDiagnosticsData.points.tr5}
-              onChange={(e) =>
-                handleCheckboxChange("points", "tr5", e.checked ?? false)
-              }
-            />
-            <div className="bg-red-100 border border-red-300 rounded px-3 py-2 text-sm">
-              TR5 (7+ points)
+            <div className="flex items-center gap-3">
+              <RadioButton
+                inputId="solid"
+                name="composition"
+                value="solid"
+                onChange={(e) => handleRadioChange("composition", e.value)}
+                checked={aiDiagnosticsData.composition === "solid"}
+              />
+              <label htmlFor="solid" className="text-sm text-gray-700 flex items-center gap-2">
+                Solid or Almost Completely Solid <span className="text-blue-300 font-light text-xs">(2 points)</span>
+                
+              </label>
             </div>
           </div>
         </div>
+
+        {/* Echogenicity Radio Buttons */}
+        <div className="p-4 border border-gray-200 rounded-lg">
+          <h3 className="text-lg font-medium text-gray-800 mb-4">Echogenicity</h3>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <RadioButton
+                inputId="anechoic"
+                name="echogenicity"
+                value="anechoic"
+                onChange={(e) => handleRadioChange("echogenicity", e.value)}
+                checked={aiDiagnosticsData.echogenicity === "anechoic"}
+              />
+              <label htmlFor="anechoic" className="text-sm text-gray-700 flex items-center gap-2">
+                Anechoic <span className="text-blue-300 font-light text-xs">(0 points)</span>
+                
+              </label>
+            </div>
+            <div className="flex items-center gap-3">
+              <RadioButton
+                inputId="hyperechoic"
+                name="echogenicity"
+                value="hyperechoic"
+                onChange={(e) => handleRadioChange("echogenicity", e.value)}
+                checked={aiDiagnosticsData.echogenicity === "hyperechoic"}
+              />
+              <label htmlFor="hyperechoic" className="text-sm text-gray-700 flex items-center gap-2">
+                Hyperechoic or Isoechoic <span className="text-blue-300 font-light text-xs">(1 point)</span>
+                
+              </label>
+            </div>
+            <div className="flex items-center gap-3">
+              <RadioButton
+                inputId="hypoechoic"
+                name="echogenicity"
+                value="hypoechoic"
+                onChange={(e) => handleRadioChange("echogenicity", e.value)}
+                checked={aiDiagnosticsData.echogenicity === "hypoechoic"}
+              />
+              <label htmlFor="hypoechoic" className="text-sm text-gray-700 flex items-center gap-2">
+                Hypoechoic <span className="text-blue-300 font-light text-xs">(2 points)</span>
+                
+              </label>
+            </div>
+            <div className="flex items-center gap-3">
+              <RadioButton
+                inputId="veryHypoechoic"
+                name="echogenicity"
+                value="veryHypoechoic"
+                onChange={(e) => handleRadioChange("echogenicity", e.value)}
+                checked={aiDiagnosticsData.echogenicity === "veryHypoechoic"}
+              />
+              <label htmlFor="veryHypoechoic" className="text-sm text-gray-700 flex items-center gap-2">
+                Very Hypoechoic <span className="text-blue-300 font-light text-xs">(3 points)</span>
+                
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Shape Radio Buttons */}
+        <div className="p-4 border border-gray-200 rounded-lg">
+          <h3 className="text-lg font-medium text-gray-800 mb-4">Shape</h3>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <RadioButton
+                inputId="widerThanTallShape"
+                name="shape"
+                value="widerThanTall"
+                onChange={(e) => handleRadioChange("shape", e.value)}
+                checked={aiDiagnosticsData.shape === "widerThanTall"}
+              />
+              <label htmlFor="widerThanTallShape" className="text-sm text-gray-700 flex items-center gap-2">
+                Wider Than Tall <span className="text-blue-300 font-light text-xs">(0 points)</span>
+                
+              </label>
+            </div>
+            <div className="flex items-center gap-3">
+              <RadioButton
+                inputId="tallerThanWide"
+                name="shape"
+                value="tallerThanWide"
+                onChange={(e) => handleRadioChange("shape", e.value)}
+                checked={aiDiagnosticsData.shape === "tallerThanWide"}
+              />
+              <label htmlFor="tallerThanWide" className="text-sm text-gray-700 flex items-center gap-2">
+                Taller Than Wide <span className="text-blue-300 font-light text-xs">(3 points)</span>
+                
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Margin Radio Buttons */}
+        <div className="p-4 border border-gray-200 rounded-lg"> 
+          <h3 className="text-lg font-medium text-gray-800 mb-4">Margin</h3>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <RadioButton
+                inputId="smooth"
+                name="margin"
+                value="smooth"
+                onChange={(e) => handleRadioChange("margin", e.value)}
+                checked={aiDiagnosticsData.margin === "smooth"}
+              />
+              <label htmlFor="smooth" className="text-sm text-gray-700 flex items-center gap-2">
+                Smooth <span className="text-blue-300 font-light text-xs">(0 points)</span>
+                
+              </label>
+            </div>
+            <div className="flex items-center gap-3">
+              <RadioButton
+                inputId="illDefined"
+                name="margin"
+                value="illDefined"
+                onChange={(e) => handleRadioChange("margin", e.value)}
+                checked={aiDiagnosticsData.margin === "illDefined"}
+              />
+              <label htmlFor="illDefined" className="text-sm text-gray-700 flex items-center gap-2">
+                Ill defined <span className="text-blue-300 font-light text-xs">(0 points)</span>
+                
+              </label>
+            </div>
+            <div className="flex items-center gap-3">
+              <RadioButton
+                inputId="lobularOrIrregular"
+                name="margin"
+                value="lobular"
+                onChange={(e) => handleRadioChange("margin", e.value)}
+                checked={aiDiagnosticsData.margin === "lobular"}
+              />
+              <label htmlFor="lobularOrIrregular" className="text-sm text-gray-700 flex items-center gap-2">
+                Lobulated or irregular <span className="text-blue-300 font-light text-xs">(2 points)</span>
+                
+              </label>
+            </div>
+            <div className="flex items-center gap-3">
+              <RadioButton
+                inputId="extraThyroidalExtension"
+                name="margin"
+                value="extraThyroidal"
+                onChange={(e) => handleRadioChange("margin", e.value)}
+                checked={aiDiagnosticsData.margin === "extraThyroidal"}
+              />
+              <label htmlFor="extraThyroidalExtension" className="text-sm text-gray-700 flex items-center gap-2">
+                Extra Thyroidal Extension <span className="text-blue-300 font-light text-xs">(3 points)</span>
+                
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Echogenic Focii */}
+        <div className="p-4 border border-gray-200 rounded-lg">
+          <h3 className="text-lg font-medium text-gray-800 mb-4">Echogenic Focii (Select all that apply)</h3>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <Checkbox
+                inputId="noneOrLargeCometTail"
+                checked={aiDiagnosticsData.echogenicFocii.noneOrLarge}
+                onChange={(e) =>
+                  handleCheckboxChange("echogenicFocii", "noneOrLarge", e.checked ?? false)
+                }
+              />
+              <label htmlFor="noneOrLargeCometTail" className="text-sm text-gray-700 flex items-center gap-2">
+                None or Large Comet-Tail Artifacts <span className="text-blue-300 font-light text-xs">(0 points)</span>
+                
+              </label>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox
+                inputId="macrocalcifications"
+                checked={aiDiagnosticsData.echogenicFocii.macrocalcifications}
+                onChange={(e) =>
+                  handleCheckboxChange("echogenicFocii", "macrocalcifications", e.checked ?? false)
+                }
+              />
+              <label htmlFor="macrocalcifications" className="text-sm text-gray-700 flex items-center gap-2">
+                Macrocalcifications <span className="text-blue-300 font-light text-xs">(1 point)</span>
+                
+              </label>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox
+                inputId="peripheralCalcifications"
+                checked={aiDiagnosticsData.echogenicFocii.peripheral}
+                onChange={(e) =>
+                  handleCheckboxChange("echogenicFocii", "peripheral", e.checked ?? false)
+                }
+              />
+              <label htmlFor="peripheralCalcifications" className="text-sm text-gray-700 flex items-center gap-2">
+                Peripheral/RIM Calcifications <span className="text-blue-300 font-light text-xs">(2 points)</span>
+                
+              </label>
+            </div>
+            <div className="flex items-center gap-3">
+              <Checkbox
+                inputId="punctateEchogenicFoci"
+                checked={aiDiagnosticsData.echogenicFocii.punctate}
+                onChange={(e) =>
+                  handleCheckboxChange("echogenicFocii", "punctate", e.checked ?? false)
+                }
+              />
+              <label htmlFor="punctateEchogenicFoci" className="text-sm text-gray-700 flex items-center gap-2">
+                Punctate Echogenic Foci <span className="text-blue-300 font-light text-xs">(3 points)</span>
+                
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* TR Level Display (Read-only) */}
+        <div className="p-4 border border-gray-200 rounded-lg">
+          <h3 className="text-lg font-medium text-gray-800 mb-4">TI-RADS Category (Auto-calculated)</h3>
+          <div className="flex gap-4 flex-wrap">
+            <div className={`flex items-center gap-2 ${aiDiagnosticsData.points.tr1 ? 'opacity-100' : 'opacity-40'}`}>
+              <Checkbox
+                inputId="tr1"
+                checked={aiDiagnosticsData.points.tr1}
+                disabled={true}
+              />
+              <div className="bg-green-100 border border-green-300 rounded px-3 py-2 text-sm font-medium">
+                TR1 (0 points) - Benign
+              </div>
+            </div>
+            <div className={`flex items-center gap-2 ${aiDiagnosticsData.points.tr2 ? 'opacity-100' : 'opacity-40'}`}>
+              <Checkbox
+                inputId="tr2"
+                checked={aiDiagnosticsData.points.tr2}
+                disabled={true}
+              />
+              <div className="bg-blue-100 border border-blue-300 rounded px-3 py-2 text-sm font-medium">
+                TR2 (2 points) - Not Suspicious
+              </div>
+            </div>
+            <div className={`flex items-center gap-2 ${aiDiagnosticsData.points.tr3 ? 'opacity-100' : 'opacity-40'}`}>
+              <Checkbox
+                inputId="tr3"
+                checked={aiDiagnosticsData.points.tr3}
+                disabled={true}
+              />
+              <div className="bg-purple-100 border border-purple-300 rounded px-3 py-2 text-sm font-medium">
+                TR3 (3 points) - Mildly Suspicious
+              </div>
+            </div>
+            <div className={`flex items-center gap-2 ${aiDiagnosticsData.points.tr4 ? 'opacity-100' : 'opacity-40'}`}>
+              <Checkbox
+                inputId="tr4"
+                checked={aiDiagnosticsData.points.tr4}
+                disabled={true}
+              />
+              <div className="bg-yellow-100 border border-yellow-300 rounded px-3 py-2 text-sm font-medium">
+                TR4 (4-6 points) - Moderately Suspicious
+              </div>
+            </div>
+            <div className={`flex items-center gap-2 ${aiDiagnosticsData.points.tr5 ? 'opacity-100' : 'opacity-40'}`}>
+              <Checkbox
+                inputId="tr5"
+                checked={aiDiagnosticsData.points.tr5}
+                disabled={true}
+              />
+              <div className="bg-red-100 border border-red-300 rounded px-3 py-2 text-sm font-medium">
+                TR5 (7+ points) - Highly Suspicious
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <>
