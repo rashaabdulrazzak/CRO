@@ -3,65 +3,24 @@ import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog } from "primereact/dialog";
 import { Steps } from "primereact/steps";
-import { InputText } from "primereact/inputtext";
-import { Calendar } from "primereact/calendar";
-import { RadioButton } from "primereact/radiobutton";
-import { Dropdown } from "primereact/dropdown";
 import { Button } from "primereact/button";
-import { FileUpload } from "primereact/fileupload";
 import { Toast } from "primereact/toast";
 import { getNextImageNumber } from "../lib/mockData";
-import { CriteriaItem } from "./CriteriaItem";
 import { MultiSelect } from "primereact/multiselect";
+import DemographicFormStep from "./steps/DemographicFormStep";
+import type {
+  DemographicForm,
+  InclusionForm,
+  MedicalHistoryForm,
+  ExclusionForm,
+} from "../types";
+import MedicalHistoryStep from "./steps/MedicalHistoryStep";
+import InclusionCriteriaStep from "./steps/InclusionCriteriaStep";
+import ExclusionFormStep from "./steps/ExclusionCriteriaStep";
+import UploadPhotoStep from "./steps/UploadPhotoStep";
 
 // ================== CONFIG ==================
 const USE_BACKEND = false; // switch to true when your API is ready
-
-// ================== TYPES ==================
-type Sex = "male" | "female" | "not-specify" | "";
-type YesNo = "yes" | "no" | "";
-
-// Step 0
-interface DemographicForm {
-  volunteerCode: string; // TRxxxxx (strict)
-  nameSurname: string;
-  protocolNo: string; // e.g. DSTR-2023
-  visitDate: Date | null; // first visit (USG)
-  secondVisitDate: Date | null; // second visit (pathology)
-  gender: Sex;
-  birthDate: Date | null;
-  weight: string;
-  size: string;
-  bodyMassIndex: string;
-  referredFrom: string;
-  usgDevice: string; // device/probe details
-
-  // Optional quick questions
-  question1: YesNo;
-  question2: YesNo;
-  question3: YesNo;
-  question4: YesNo;
-  question5: YesNo;
-}
-
-// Step 1
-interface MedicalHistoryForm {
-  medicalQuestion1: YesNo;
-  howManyYears: string;
-  medicalQuestion2: YesNo | "";
-  medicalQuestion3: YesNo | "";
-  medicalQuestion4: YesNo;
-  diseaseType: string;
-  medicalQuestion5: YesNo | "";
-}
-
-// Step 2–3 (booleans)
-type InclusionForm = {
-  ageOver18: boolean | null;
-  thyroidNoduleSuspicion: boolean | null;
-  bgofVolunteer: boolean | null;
-  notRestricted: boolean | null;
-};
 
 const initialInc: InclusionForm = {
   ageOver18: null,
@@ -70,29 +29,15 @@ const initialInc: InclusionForm = {
   notRestricted: null,
 };
 
-type ExclusionForm = {
-  ageUnder18: boolean | null;
-  nonBgofVolunteer: boolean | null;
-  restricted: boolean | null;
-  baskaclinikcalismadayerolmak: boolean | null;
-  tiroidBeziIleIlgiliOperasyon: boolean | null;
-  diffuzParenkimalOlgular: boolean | null;
-  birNoduluTespitEdilemeyenOlgular: boolean | null;
-};
-
-
-
-// step 6 
+// step 6
 const radiologistOptions = [
-  { label: 'Radiologist 1', value: 'radiologist1' },
-  { label: 'Radiologist 2', value: 'radiologist2' },
-  { label: 'Radiologist 3', value: 'radiologist3' },
-  { label: 'Radiologist 4', value: 'radiologist4' },
-  { label: 'Radiologist 5', value: 'radiologist5' },
-  { label: 'Radiologist 6', value: 'radiologist6' },
+  { label: "Radiologist 1", value: "radiologist1" },
+  { label: "Radiologist 2", value: "radiologist2" },
+  { label: "Radiologist 3", value: "radiologist3" },
+  { label: "Radiologist 4", value: "radiologist4" },
+  { label: "Radiologist 5", value: "radiologist5" },
+  { label: "Radiologist 6", value: "radiologist6" },
 ];
-
-type UploadedPhoto = string; // dataURL or stub URL
 
 // Final “records” kept in localStorage
 interface LSPatient {
@@ -149,7 +94,6 @@ const calcAgeFromDate = (d: Date | null): number | null => {
   return age;
 };
 
-
 // Volunteer ID: TR + 5 digits
 const VOL_ID_RE = /^TR\d{5}$/;
 const normalizeVolunteerCode = (raw: string) => {
@@ -176,17 +120,22 @@ const api = async (url: string, method: string, body?: any) => {
 interface AddNewPredictDialogProps {
   visible: boolean;
   onHide: () => void;
-  currentRole :"field_coordinator" | "radiologist" | "monitor" | "patolog_coordinator" | "biostatistician";
+  currentRole:
+    | "field_coordinator"
+    | "radiologist"
+    | "monitor"
+    | "patolog_coordinator"
+    | "biostatistician";
 }
 
 export const AddNewPredictDialog: React.FC<AddNewPredictDialogProps> = ({
   visible,
   onHide,
-  currentRole
+  currentRole,
 }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const toast = useRef<Toast>(null);
-console.log(currentRole)
+  console.log(currentRole);
   // ---- initial states
   const initialDemographic: DemographicForm = useMemo(
     () => ({
@@ -202,11 +151,11 @@ console.log(currentRole)
       bodyMassIndex: "24.16",
       referredFrom: "Radiology Clinic",
       usgDevice: "",
-      question1: "",
-      question2: "",
-      question3: "",
-      question4: "",
-      question5: "",
+      question1: null,
+      question2: null,
+      question3: null,
+      question4: null,
+      question5: null,
     }),
     []
   );
@@ -233,20 +182,22 @@ console.log(currentRole)
     birNoduluTespitEdilemeyenOlgular: null,
   };
 
- 
-
   // ---- state
   const draftKey = "app.addPredictDraft";
-  const [demographic, setDemographic] = useState<DemographicForm>(initialDemographic);
+  const [demographic, setDemographic] =
+    useState<DemographicForm>(initialDemographic);
   const [medical, setMedical] = useState<MedicalHistoryForm>(initialMed);
   const [inclusion, setInclusion] = useState<InclusionForm>(initialInc);
   const [exclusion, setExclusion] = useState<ExclusionForm>(initialExc);
-  const [uploadedPhotos, setUploadedPhotos] = useState<UploadedPhoto[]>([]);
 
   const [patientId, setPatientId] = useState<number | null>(null);
   const [caseId, setCaseId] = useState<number | null>(null);
-  const [selectedRadiologists, setSelectedRadiologists] = useState<string[]>([]);
+  const [selectedRadiologists, setSelectedRadiologists] = useState<string[]>(
+    []
+  );
   const [isRadiologistInvalid, setIsRadiologistInvalid] = useState(false);
+  const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
+
   // ---- load draft + revive dates
   useEffect(() => {
     const d = lsGet<any | null>(draftKey, null);
@@ -261,7 +212,7 @@ console.log(currentRole)
       setMedical({ ...initialMed, ...(d.medical || {}) });
       setInclusion({ ...initialInc, ...(d.inclusion || {}) });
       setExclusion({ ...initialExc, ...(d.exclusion || {}) });
-    
+
       setUploadedPhotos(d.uploadedPhotos || []);
       setPatientId(d.patientId ?? null);
       setCaseId(d.caseId ?? null);
@@ -282,9 +233,20 @@ console.log(currentRole)
       patientId,
       caseId,
       selectedRadiologists, // Add this
-     isRadiologistInvalid   // Add this
+      isRadiologistInvalid, // Add this
     });
-  }, [activeIndex, demographic, medical, inclusion, exclusion, uploadedPhotos,selectedRadiologists,isRadiologistInvalid, patientId, caseId]);
+  }, [
+    activeIndex,
+    demographic,
+    medical,
+    inclusion,
+    exclusion,
+    uploadedPhotos,
+    selectedRadiologists,
+    isRadiologistInvalid,
+    patientId,
+    caseId,
+  ]);
 
   // ---- localStorage “collections”
   const patientsKey = "app.patients";
@@ -292,27 +254,51 @@ console.log(currentRole)
   const formsKey = "app.forms";
   const uploadsKey = "app.uploads";
 
-  const createPatientLocal = (payload: Omit<LSPatient, "id" | "createdAt">): LSPatient => {
+  const createPatientLocal = (
+    payload: Omit<LSPatient, "id" | "createdAt">
+  ): LSPatient => {
     const list = lsGet<LSPatient[]>(patientsKey, []);
-    const p: LSPatient = { id: nextId(list), createdAt: new Date().toISOString(), ...payload };
+    const p: LSPatient = {
+      id: nextId(list),
+      createdAt: new Date().toISOString(),
+      ...payload,
+    };
     lsSet(patientsKey, [...list, p]);
     return p;
   };
-  const createCaseLocal = (payload: Omit<LSCase, "id" | "createdAt">): LSCase => {
+  const createCaseLocal = (
+    payload: Omit<LSCase, "id" | "createdAt">
+  ): LSCase => {
     const list = lsGet<LSCase[]>(casesKey, []);
-    const c: LSCase = { id: nextId(list), createdAt: new Date().toISOString(), ...payload };
+    const c: LSCase = {
+      id: nextId(list),
+      createdAt: new Date().toISOString(),
+      ...payload,
+    };
     lsSet(casesKey, [...list, c]);
     return c;
   };
-  const createUploadLocal = (payload: Omit<LSUpload, "id" | "createdAt">): LSUpload => {
+  const createUploadLocal = (
+    payload: Omit<LSUpload, "id" | "createdAt">
+  ): LSUpload => {
     const list = lsGet<LSUpload[]>(uploadsKey, []);
-    const u: LSUpload = { id: nextId(list), createdAt: new Date().toISOString(), ...payload };
+    const u: LSUpload = {
+      id: nextId(list),
+      createdAt: new Date().toISOString(),
+      ...payload,
+    };
     lsSet(uploadsKey, [...list, u]);
     return u;
   };
-  const createFormLocal = (payload: Omit<LSForm, "id" | "createdAt">): LSForm => {
+  const createFormLocal = (
+    payload: Omit<LSForm, "id" | "createdAt">
+  ): LSForm => {
     const list = lsGet<LSForm[]>(formsKey, []);
-    const f: LSForm = { id: nextId(list), createdAt: new Date().toISOString(), ...payload };
+    const f: LSForm = {
+      id: nextId(list),
+      createdAt: new Date().toISOString(),
+      ...payload,
+    };
     lsSet(formsKey, [...list, f]);
     return f;
   };
@@ -330,30 +316,20 @@ console.log(currentRole)
   // Handler for radiologist selection
   const handleRadiologistChange = (e: any) => {
     const newSelection = e.value;
-    
+
     if (newSelection.length > 3) {
       toast.current?.show({
-        severity: 'warn',
-        summary: 'Selection Limit',
-        detail: 'You can only select exactly 3 radiologists',
-        life: 3000
+        severity: "warn",
+        summary: "Selection Limit",
+        detail: "You can only select exactly 3 radiologists",
+        life: 3000,
       });
       return;
     }
-    
+
     setSelectedRadiologists(newSelection);
     setIsRadiologistInvalid(newSelection.length !== 3);
   };
-
-  // Role per step (from protocol)
-  // const stepRole = ["Hekim", "Koordinatör", "Hekim", "Hekim", "Koordinatör", "Hekim"] as const;
-
-  const referralOptions = [
-    { label: "Radiology Clinic", value: "Radiology Clinic" },
-    { label: "Emergency Department", value: "Emergency Department" },
-    { label: "General Practice", value: "General Practice" },
-  ];
-  const yearsOptions = ["1", "2", "3", "4", "5"].map((v) => ({ label: v, value: v }));
 
   // ================== ACTIONS ==================
   const handleDialogClose = () => {
@@ -370,555 +346,330 @@ console.log(currentRole)
     setUploadedPhotos([]);
     setPatientId(null);
     setCaseId(null);
-    setSelectedRadiologists([]); 
-    setIsRadiologistInvalid(false); 
+    setSelectedRadiologists([]);
+    setIsRadiologistInvalid(false);
     localStorage.removeItem(draftKey);
   };
 
   const generateVolunteerId = () => {
     const next = getNextImageNumber();
-    setDemographic((prev) => ({ ...prev, volunteerCode: normalizeVolunteerCode(next) }));
+    setDemographic((prev) => ({
+      ...prev,
+      volunteerCode: normalizeVolunteerCode(next),
+    }));
   };
 
   const toastRef = toast;
   const showError = (detail: string) =>
-    toastRef.current?.show({ severity: "error", summary: "Hata", detail, life: 3000 });
+    toastRef.current?.show({
+      severity: "error",
+      summary: "Hata",
+      detail,
+      life: 3000,
+    });
   const showInfo = (detail: string) =>
-    toastRef.current?.show({ severity: "info", summary: "Bilgi", detail, life: 2000 });
+    toastRef.current?.show({
+      severity: "info",
+      summary: "Bilgi",
+      detail,
+      life: 2000,
+    });
   const showSuccess = (detail: string) =>
-    toastRef.current?.show({ severity: "success", summary: "Başarılı", detail, life: 2500 });
+    toastRef.current?.show({
+      severity: "success",
+      summary: "Başarılı",
+      detail,
+      life: 2500,
+    });
 
   const handleSaveAndNext = async () => {
-  try {
-    // STEP 0: create patient with validations
-    if (activeIndex === 0) {
-      const code = normalizeVolunteerCode(demographic.volunteerCode);
-      if (!VOL_ID_RE.test(code)) {
-        showError("Gönüllü ID formatı TR00000 olmalıdır (ör. TR00001).");
-        return;
-      }
-      if (!demographic.nameSurname?.trim()) {
-        showError("Name Surname zorunludur.");
-        return;
-      }
-      setDemographic((prev) => ({ ...prev, volunteerCode: code }));
-
-      const age = calcAgeFromDate(demographic.birthDate);
-      const sex =
-        demographic.gender === "male" ? "male" : demographic.gender === "female" ? "female" : undefined;
-
-      const localPatient = createPatientLocal({
-        code,
-        name: demographic.nameSurname.trim(),
-        age,
-        sex,
-      });
-      setPatientId(localPatient.id);
-
-      if (USE_BACKEND) {
-        await api("/patients", "POST", { name: demographic.nameSurname.trim(), age, sex, code });
-      }
-      setActiveIndex(1);
-      showInfo("Hasta oluşturuldu.");
-      return;
-    }
-
-    // STEP 1 (Medical History): Just advance
-    if (activeIndex === 1) {
-      setActiveIndex(2);
-      return;
-    }
-
-    // STEP 2 (Inclusion): ALL must be true; also ensure all answered
-    if (activeIndex === 2) {
-      const values = Object.values(inclusion);
-      if (values.some((v) => v === null)) {
-        showError("Lütfen tüm dahil etme kriterlerini yanıtlayın.");
-        return;
-      }
-      const allTrue = values.every((v) => v === true);
-      if (!allTrue) {
-        showError("Dahil etme kriterlerinin tamamı 'Evet' olmalıdır. Hasta eklenemez.");
-        return;
-      }
-      setActiveIndex(3);
-      return;
-    }
-
-    // STEP 3 (Exclusion): ANY true means exclude; ensure all answered
-    if (activeIndex === 3) {
-      const values = Object.values(exclusion);
-      if (values.some((v) => v === null)) {
-        showError("Lütfen tüm hariç tutma kriterlerini yanıtlayın.");
-        return;
-      }
-      const anyTrue = values.some((v) => v === true);
-      if (anyTrue) {
-        showError("Hariç tutma kriterlerinden biri veya daha fazlası 'Evet'. Hasta eklenemez.");
-        return;
-      }
-      setActiveIndex(4);
-      return;
-    }
-
-    // STEP 4 (Upload Photo): Validate images and advance
-    if (activeIndex === 4) {
-      if (!patientId) {
-        showError("Hasta oluşturulamadı. Lütfen baştan deneyin.");
-        return;
-      }
-      if (!uploadedPhotos.length) {
-        showError("Lütfen en az bir USG görüntüsü yükleyin.");
-        return;
-      }
-      setActiveIndex(5);
-      return;
-    }
-
-    // FINAL STEP 5 (Radiologist Selection): Validate and save EVERYTHING
-    if (activeIndex === 5) {
-       if (selectedRadiologists.length !== 3) {
-        showError("Please select exactly 3 radiologists.");
-        return;
-      }
-
-     // NOW save all data since all steps are complete
-  const base = normalizeVolunteerCode(demographic.volunteerCode);
-  const caseImageId = makeImageId(base, 0);
-  if (patientId == null) {
-    showError("Hasta bulunamadı. Lütfen baştan deneyin.");
-    return;
-  }
-  const localCase = createCaseLocal({ patientId: patientId, imageId: caseImageId });
-  setCaseId(localCase.id);
-
-  if (USE_BACKEND) {
-    await api("/cases", "POST", { patientId, imageId: caseImageId });
-  }
-
-      // Uploads numbered TRxxxxx-01, -02, ...
-      for (let i = 0; i < uploadedPhotos.length; i++) {
-        const imgId = makeImageId(base, i);
-        const url = uploadedPhotos[i]?.startsWith("data:")
-          ? `local://${imgId}`
-          : uploadedPhotos[i] || `local://${imgId}`;
-        createUploadLocal({ caseId: localCase.id, kind: "USG", url });
-        if (USE_BACKEND) {
-          await api(`/uploads/cases/${localCase.id}`, "POST", { kind: "USG", url, createdByUserId: 1 });
+    try {
+      // STEP 0: create patient with validations
+      if (activeIndex === 0) {
+        const code = normalizeVolunteerCode(demographic.volunteerCode);
+        if (!VOL_ID_RE.test(code)) {
+          showError("Gönüllü ID formatı TR00000 olmalıdır (ör. TR00001).");
+          return;
         }
+        if (!demographic.nameSurname?.trim()) {
+          showError("Name Surname zorunludur.");
+          return;
+        }
+        setDemographic((prev) => ({ ...prev, volunteerCode: code }));
+
+        const age = calcAgeFromDate(demographic.birthDate);
+        const sex =
+          demographic.gender === "male"
+            ? "male"
+            : demographic.gender === "female"
+            ? "female"
+            : undefined;
+
+        const localPatient = createPatientLocal({
+          code,
+          name: demographic.nameSurname.trim(),
+          age,
+          sex,
+        });
+        setPatientId(localPatient.id);
+
+        if (USE_BACKEND) {
+          await api("/patients", "POST", {
+            name: demographic.nameSurname.trim(),
+            age,
+            sex,
+            code,
+          });
+        }
+        setActiveIndex(1);
+        showInfo("Hasta oluşturuldu.");
+        return;
       }
 
-      // Visit/administrative form
-      const visitPayload = {
-        volunteerCode: base,
-        protocolNo: demographic.protocolNo,
-        visitDate: demographic.visitDate ? demographic.visitDate.toISOString().split("T")[0] : null,
-        secondVisitDate: demographic.secondVisitDate
-          ? demographic.secondVisitDate.toISOString().split("T")[0]
-          : null,
-        referredFrom: demographic.referredFrom,
-        usgDevice: demographic.usgDevice,
-        bmi: demographic.bodyMassIndex,
-        weight: demographic.weight,
-        size: demographic.size,
-        extraQuestions: {
-          q1: demographic.question1,
-          q2: demographic.question2,
-          q3: demographic.question3,
-          q4: demographic.question4,
-          q5: demographic.question5,
-        },
-           selectedRadiologists: selectedRadiologists, // Array of 3 radiologist values
+      // STEP 1 (Medical History): Just advance
+      if (activeIndex === 1) {
+        setActiveIndex(2);
+        return;
+      }
 
-      };
-      createFormLocal({ caseId: localCase.id, type: "CRF01-visit", version: "v1", data: visitPayload });
-      if (USE_BACKEND) {
-        await api(`/forms/cases/${localCase.id}`, "POST", {
+      // STEP 2 (Inclusion): ALL must be true; also ensure all answered
+      if (activeIndex === 2) {
+        const values = Object.values(inclusion);
+        if (values.some((v) => v === null)) {
+          showError("Lütfen tüm dahil etme kriterlerini yanıtlayın.");
+          return;
+        }
+        const allTrue = values.every((v) => v === true);
+        if (!allTrue) {
+          showError(
+            "Dahil etme kriterlerinin tamamı 'Evet' olmalıdır. Hasta eklenemez."
+          );
+          return;
+        }
+        setActiveIndex(3);
+        return;
+      }
+
+      // STEP 3 (Exclusion): ANY true means exclude; ensure all answered
+      if (activeIndex === 3) {
+        const values = Object.values(exclusion);
+        if (values.some((v) => v === null)) {
+          showError("Lütfen tüm hariç tutma kriterlerini yanıtlayın.");
+          return;
+        }
+        const anyTrue = values.some((v) => v === true);
+        if (anyTrue) {
+          showError(
+            "Hariç tutma kriterlerinden biri veya daha fazlası 'Evet'. Hasta eklenemez."
+          );
+          return;
+        }
+        setActiveIndex(4);
+        return;
+      }
+
+      // STEP 4 (Upload Photo): Validate images and advance
+      if (activeIndex === 4) {
+        if (!patientId) {
+          showError("Hasta oluşturulamadı. Lütfen baştan deneyin.");
+          return;
+        }
+        if (!uploadedPhotos.length) {
+          showError("Lütfen en az bir USG görüntüsü yükleyin.");
+          return;
+        }
+        setActiveIndex(5);
+        return;
+      }
+
+      // FINAL STEP 5 (Radiologist Selection): Validate and save EVERYTHING
+      if (activeIndex === 5) {
+        if (selectedRadiologists.length !== 3) {
+          showError("Please select exactly 3 radiologists.");
+          return;
+        }
+
+        // NOW save all data since all steps are complete
+        const base = normalizeVolunteerCode(demographic.volunteerCode);
+        const caseImageId = makeImageId(base, 0);
+        if (patientId == null) {
+          showError("Hasta bulunamadı. Lütfen baştan deneyin.");
+          return;
+        }
+        const localCase = createCaseLocal({
+          patientId: patientId,
+          imageId: caseImageId,
+        });
+        setCaseId(localCase.id);
+
+        if (USE_BACKEND) {
+          await api("/cases", "POST", { patientId, imageId: caseImageId });
+        }
+
+        // ✅ FIX: Handle File objects correctly
+        // Convert File objects to data URLs for local storage or prepare for upload
+        for (let i = 0; i < uploadedPhotos.length; i++) {
+          const file = uploadedPhotos[i];
+          const imgId = makeImageId(base, i);
+
+          // Store file reference locally (you can't store File objects directly in localStorage)
+          // Option 1: Store as data URL for display
+          const dataUrl = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(file);
+          });
+
+          createUploadLocal({
+            caseId: localCase.id,
+            kind: "USG",
+            url: dataUrl,
+            contentType: file.type,
+          });
+
+          if (USE_BACKEND) {
+            // Option 2: Send actual file to backend
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("kind", "USG");
+            formData.append("imageId", imgId);
+            formData.append("createdByUserId", "1");
+
+            try {
+              await fetch(`/uploads/cases/${localCase.id}`, {
+                method: "POST",
+                body: formData,
+              });
+            } catch (err) {
+              console.error(`Failed to upload ${file.name}:`, err);
+              showError(`Failed to upload ${file.name}`);
+              return;
+            }
+          }
+        }
+
+        // Visit/administrative form
+        const visitPayload = {
+          volunteerCode: base,
+          protocolNo: demographic.protocolNo,
+          visitDate: demographic.visitDate
+            ? demographic.visitDate.toISOString().split("T")[0]
+            : null,
+          secondVisitDate: demographic.secondVisitDate
+            ? demographic.secondVisitDate.toISOString().split("T")[0]
+            : null,
+          referredFrom: demographic.referredFrom,
+          usgDevice: demographic.usgDevice,
+          bmi: demographic.bodyMassIndex,
+          weight: demographic.weight,
+          size: demographic.size,
+          extraQuestions: {
+            q1: demographic.question1,
+            q2: demographic.question2,
+            q3: demographic.question3,
+            q4: demographic.question4,
+            q5: demographic.question5,
+          },
+          selectedRadiologists: selectedRadiologists,
+        };
+        createFormLocal({
+          caseId: localCase.id,
           type: "CRF01-visit",
           version: "v1",
           data: visitPayload,
-          createdByUserId: 1,
         });
-      }
+        if (USE_BACKEND) {
+          await api(`/forms/cases/${localCase.id}`, "POST", {
+            type: "CRF01-visit",
+            version: "v1",
+            data: visitPayload,
+            createdByUserId: 1,
+          });
+        }
 
-      // Eligibility form (medical + inclusion + exclusion)
-      const eligibilityPayload = { medicalHistory: medical, inclusion, exclusion };
-      createFormLocal({ caseId: localCase.id, type: "CRF01-eligibility", version: "v1", data: eligibilityPayload });
-      if (USE_BACKEND) {
-        await api(`/forms/cases/${localCase.id}`, "POST", {
+        // Eligibility form (medical + inclusion + exclusion)
+        const eligibilityPayload = {
+          medicalHistory: medical,
+          inclusion,
+          exclusion,
+        };
+        createFormLocal({
+          caseId: localCase.id,
           type: "CRF01-eligibility",
           version: "v1",
           data: eligibilityPayload,
-          createdByUserId: 1,
         });
+        if (USE_BACKEND) {
+          await api(`/forms/cases/${localCase.id}`, "POST", {
+            type: "CRF01-eligibility",
+            version: "v1",
+            data: eligibilityPayload,
+            createdByUserId: 1,
+          });
+        }
+
+        showSuccess("Kayıt tamamlandı.");
+        resetFormToInitialState();
+        onHide();
       }
-
-      showSuccess("Kayıt tamamlandı.");
-      resetFormToInitialState();
-      onHide();
+    } catch (err: any) {
+      console.error(err);
+      showError(
+        typeof err?.message === "string"
+          ? err.message
+          : "İşlem sırasında bir hata oluştu."
+      );
     }
-  } catch (err: any) {
-    console.error(err);
-    showError(typeof err?.message === "string" ? err.message : "İşlem sırasında bir hata oluştu.");
-  }
-};
-
+  };
 
   // ================== UI RENDERERS ==================
   const renderStepContent = () => {
-  switch (activeIndex) {
-    case 0:
-      return renderDemographicInformation();
-    case 1:
-      return renderMedicalHistory();
-    case 2:
-      return renderInclusionCriteria();
-    case 3:
-      return renderExclusionCriteria();
-    case 4:
-      return renderUploadPhoto();
-    case 5:
-      return renderAvailableRadiologist();  
-    default:
-      return <div className="text-center py-8 text-gray-500">Step content coming soon...</div>;
-  }
-};
-
-
-  const renderDemographicInformation = () => (
-    <>
-      {/* ONE grid for all fields */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Volunteer ID + Generate */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Volunteer ID (Gönüllü No)</label>
-          <div className="flex gap-2">
-            <InputText
-              id="volunteerId"
-              value={demographic.volunteerCode}
-              onChange={(e) => setDemographic((prev) => ({ ...prev, volunteerCode: e.target.value }))}
-              onBlur={(e) =>
-                setDemographic((prev) => ({ ...prev, volunteerCode: normalizeVolunteerCode(e.target.value) }))
-              }
-              placeholder="e.g., TR00001"
-              className="w-full"
-            />
-            <Button type="button" label="Generate" onClick={generateVolunteerId} className="shrink-0 p-button-secondary" />
+    switch (activeIndex) {
+      case 0:
+        return (
+          <DemographicFormStep
+            demographic={demographic}
+            setDemographic={setDemographic}
+            generateVolunteerId={generateVolunteerId}
+          />
+        );
+      case 1:
+        return <MedicalHistoryStep medical={medical} setMedical={setMedical} />;
+      case 2:
+        return (
+          <InclusionCriteriaStep
+            inclusion={inclusion}
+            setInclusion={setInclusion}
+          />
+        );
+      case 3:
+        return (
+          <ExclusionFormStep
+            exclusion={exclusion}
+            setExclusion={setExclusion}
+          />
+        );
+      case 4:
+        return (
+          <UploadPhotoStep
+            uploadedPhotos={uploadedPhotos}
+            setUploadedPhotos={setUploadedPhotos}
+          />
+        );
+      case 5:
+        return renderAvailableRadiologist();
+      default:
+        return (
+          <div className="text-center py-8 text-gray-500">
+            Step content coming soon...
           </div>
-          <small className="text-gray-500">Format: TR + 5 digits (TR00001)</small>
-        </div>
-
-        {/* Protocol No */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Protocol No</label>
-          <InputText
-            value={demographic.protocolNo}
-            onChange={(e) => setDemographic((prev) => ({ ...prev, protocolNo: e.target.value }))}
-            className="w-full"
-          />
-        </div>
-
-        {/* First Visit Date */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">First Visit Date (USG)</label>
-          <Calendar
-            value={demographic.visitDate}
-            onChange={(e) => setDemographic((prev) => ({ ...prev, visitDate: (e.value as Date) ?? null }))}
-            className="w-full"
-            inputClassName="w-full"
-            showIcon
-          />
-        </div>
-
-        {/* Name Surname */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Name Surname</label>
-          <InputText
-            value={demographic.nameSurname}
-            onChange={(e) => setDemographic((prev) => ({ ...prev, nameSurname: e.target.value }))}
-            placeholder="Name Surname"
-            className="w-full"
-          />
-        </div>
-
-        {/* Birth Date */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Birth Date</label>
-          <Calendar
-            value={demographic.birthDate}
-            onChange={(e) => setDemographic((prev) => ({ ...prev, birthDate: (e.value as Date) ?? null }))}
-            className="w-full"
-            inputClassName="w-full"
-            showIcon
-          />
-        </div>
-
-        {/* Second Visit Date */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Second Visit Date (Pathology)</label>
-          <Calendar
-            value={demographic.secondVisitDate}
-            onChange={(e) =>
-              setDemographic((prev) => ({ ...prev, secondVisitDate: (e.value as Date) ?? null }))
-            }
-            className="w-full"
-            inputClassName="w-full"
-            showIcon
-          />
-        </div>
-
-        {/* Body Mass Index */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Body Mass Index</label>
-          <InputText
-            value={demographic.bodyMassIndex}
-            onChange={(e) => setDemographic((prev) => ({ ...prev, bodyMassIndex: e.target.value }))}
-            className="w-full"
-          />
-        </div>
-
-        {/* USG Device / Probe */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">USG Device / Probe</label>
-          <InputText
-            value={demographic.usgDevice}
-            onChange={(e) => setDemographic((prev) => ({ ...prev, usgDevice: e.target.value }))}
-            placeholder="e.g., Brand Model, Probe MHz"
-            className="w-full"
-          />
-        </div>
-
-        {/* Referred From */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Referred From</label>
-          <Dropdown
-            value={demographic.referredFrom}
-            options={referralOptions}
-            onChange={(e) => setDemographic((prev) => ({ ...prev, referredFrom: e.value }))}
-            className="w-full"
-            panelClassName="mt-1"
-          />
-        </div>
-
-        {/* Weight */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
-          <InputText
-            value={demographic.weight}
-            onChange={(e) => setDemographic((prev) => ({ ...prev, weight: e.target.value }))}
-            className="w-full"
-          />
-        </div>
-
-        {/* Size */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Size (cm)</label>
-          <InputText
-            value={demographic.size}
-            onChange={(e) => setDemographic((prev) => ({ ...prev, size: e.target.value }))}
-            className="w-full"
-          />
-        </div>
-
-        {/* Gender */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
-          <div className="flex flex-wrap gap-6">
-            {(["male", "female", "not-specify"] as Sex[]).map((val) => (
-              <div className="flex items-center" key={val}>
-                <RadioButton
-                  inputId={`gender-${val}`}
-                  name="gender"
-                  value={val}
-                  onChange={(e) => setDemographic((prev) => ({ ...prev, gender: e.value }))}
-                  checked={demographic.gender === val}
-                />
-                <label htmlFor={`gender-${val}`} className="ml-2 text-sm text-gray-700">
-                  {val === "not-specify" ? "Does not want to specify" : val[0].toUpperCase() + val.slice(1)}
-                </label>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </>
-  );
-
-  const renderMedicalHistory = () => (
-    <div className="space-y-6">
-      {/* Q1 */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 min-w-[120px]">
-          <span className="text-sm text-gray-700">Question 1</span>
-          <i className="pi pi-info-circle text-gray-400 text-sm"></i>
-        </div>
-        <div className="flex gap-6">
-          {(["yes", "no"] as YesNo[]).map((val) => (
-            <div className="flex items-center" key={val}>
-              <RadioButton
-                inputId={`mq1-${val}`}
-                name="medicalQuestion1"
-                value={val}
-                onChange={(e) => setMedical((prev) => ({ ...prev, medicalQuestion1: e.value }))}
-                checked={medical.medicalQuestion1 === val}
-              />
-              <label htmlFor={`mq1-${val}`} className="ml-2 text-sm text-gray-700 capitalize">
-                {val}
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* years */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">How many years?</label>
-        <Dropdown
-          value={medical.howManyYears}
-          options={yearsOptions}
-          onChange={(e) => setMedical((prev) => ({ ...prev, howManyYears: e.value }))}
-          className="w-48"
-          panelClassName="mt-1"
-        />
-      </div>
-
-      {/* Q2–Q5 */}
-      {[2, 3, 4, 5].map((n) => (
-        <div className="flex items-center gap-4" key={n}>
-          <div className="flex items-center gap-2 min-w-[120px]">
-            <span className="text-sm text-gray-700">Question {n}</span>
-            <i className="pi pi-info-circle text-gray-400 text-sm"></i>
-          </div>
-          <div className="flex gap-6">
-            {(["yes", "no"] as YesNo[]).map((val) => (
-              <div className="flex items-center" key={val}>
-                <RadioButton
-                  inputId={`mq${n}-${val}`}
-                  name={`medicalQuestion${n}`}
-                  value={val}
-                  onChange={(e) =>
-                    setMedical((prev) => ({ ...prev, [`medicalQuestion${n}`]: e.value as YesNo }))
-                  }
-                  checked={(medical as any)[`medicalQuestion${n}`] === val}
-                />
-                <label htmlFor={`mq${n}-${val}`} className="ml-2 text-sm text-gray-700 capitalize">
-                  {val}
-                </label>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-
-      {/* disease type */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Disease type</label>
-        <InputText
-          value={medical.diseaseType}
-          onChange={(e) => setMedical((prev) => ({ ...prev, diseaseType: e.target.value }))}
-          placeholder="Disease type"
-          className="w-full max-w-sm p-3 border border-gray-300 rounded-md"
-        />
-      </div>
-    </div>
-  );
-
-  const renderInclusionCriteria = () => (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-2">Dahil Etme Kriterleri</h2>
-      <p className="text-sm text-gray-600 mb-6">
-        Aşağıdaki kriterlerin hepsinin işaretlenmesi gönüllünün dahil edilme kriterlerini karşıladığını
-        göstermektedir.
-      </p>
-
-      <div className="space-y-4">
-        <CriteriaItem label="18 yaşından büyük" value={inclusion.ageOver18} onChange={(v) => setInclusion((p) => ({ ...p, ageOver18: v }))} />
-        <CriteriaItem label="Tiroid nodülü şüphesi taşımak" value={inclusion.thyroidNoduleSuspicion} onChange={(v) => setInclusion((p) => ({ ...p, thyroidNoduleSuspicion: v }))} />
-        <CriteriaItem label="BGOF alınmış gönüllü" value={inclusion.bgofVolunteer} onChange={(v) => setInclusion((p) => ({ ...p, bgofVolunteer: v }))} />
-        <CriteriaItem label="Kısıtlı olmamak (asker, yükümlü)" value={inclusion.notRestricted} onChange={(v) => setInclusion((p) => ({ ...p, notRestricted: v }))} />
-      </div>
-    </div>
-  );
-
-  const renderExclusionCriteria = () => (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-4">Hariç Tutma Kriterleri</h2>
-      <p className="text-sm text-gray-600 mb-6">
-        Aşağıdaki kriterlerin en az birinin <strong>“Evet”</strong> olması hastanın hariç tutulmasını gerektirir.
-      </p>
-
-      <div className="space-y-4">
-        <CriteriaItem label="18 yaşından küçük olmak" value={exclusion.ageUnder18} onChange={(v) => setExclusion((p) => ({ ...p, ageUnder18: v }))} />
-        <CriteriaItem label="BGOF alınmamış gönüllüler" value={exclusion.nonBgofVolunteer} onChange={(v) => setExclusion((p) => ({ ...p, nonBgofVolunteer: v }))} />
-        <CriteriaItem label="Kısıtlı olmak (asker, yükümlü)" value={exclusion.restricted} onChange={(v) => setExclusion((p) => ({ ...p, restricted: v }))} />
-        <CriteriaItem label="Başka bir klinik çalışmada yer almak" value={exclusion.baskaclinikcalismadayerolmak} onChange={(v) => setExclusion((p) => ({ ...p, baskaclinikcalismadayerolmak: v }))} />
-        <CriteriaItem label="Tiroid bezi ile ilgili operasyon (total/subtotal tiroidektomi, lobektomi), görüntüleme eşliğinde müdahale/ablasyon veya terapötik radyoizotop tedavisi geçirmiş olmak" value={exclusion.tiroidBeziIleIlgiliOperasyon} onChange={(v) => setExclusion((p) => ({ ...p, tiroidBeziIleIlgiliOperasyon: v }))} />
-        <CriteriaItem label="Nodül saptanmayan; yalnızca diffüz parenkimal patern değişikliği bulunan olgular" value={exclusion.diffuzParenkimalOlgular} onChange={(v) => setExclusion((p) => ({ ...p, diffuzParenkimalOlgular: v }))} />
-        <CriteriaItem label="Diffüz nodüler değişiklik olup, radyolog ve/veya AI değerlendirmesi ile ayrıca demarke bir nodül tespit edilemeyen olgular" value={exclusion.birNoduluTespitEdilemeyenOlgular} onChange={(v) => setExclusion((p) => ({ ...p, birNoduluTespitEdilemeyenOlgular: v }))} />
-      </div>
-    </div>
-  );
-
-
-
-  const renderUploadPhoto = () => {
-    const onFileSelect = (e: any) => {
-      const files: File[] = e.files || [];
-      if (!files.length) return;
-      const file = files[0];
-      if (file.size <= 2.5 * 1024 * 1024) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          if (event.target?.result) {
-            setUploadedPhotos((prev) => [...prev, event.target!.result as string]);
-          }
-        };
-        reader.readAsDataURL(file);
-      } else {
-        showError("Dosya 2.5MB'den küçük olmalıdır.");
-      }
-    };
-
-    return (
-      <div className="space-y-6">
-        <div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Upload Photo</h3>
-          <p className="text-sm text-gray-600 mb-6">
-            File must be less than 2.5 MB, and file format must be either JPEG, JPG or PNG.
-          </p>
-        </div>
-
-        <div className="flex gap-4 flex-wrap">
-          {uploadedPhotos.map((photo, index) => (
-            <div key={index} className="w-32 h-32 border border-gray-200 rounded-lg overflow-hidden">
-              <img src={photo || "/placeholder.svg"} alt={`Uploaded photo ${index + 1}`} className="w-full h-full object-cover" />
-            </div>
-          ))}
-
-          <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 cursor-pointer">
-            <FileUpload
-              mode="basic"
-              name="photo"
-              accept="image/jpeg,image/jpg,image/png"
-              maxFileSize={2500000}
-              onSelect={onFileSelect}
-              chooseLabel=""
-              className="p-fileupload-basic"
-              auto={false}
-              customUpload
-            />
-            <div className="text-4xl text-gray-400 mb-2">+</div>
-            <span className="text-sm text-gray-500">Upload</span>
-          </div>
-        </div>
-      </div>
-    );
+        );
+    }
   };
 
-const renderAvailableRadiologist = () => {
-
-  return (
-       <>
+  const renderAvailableRadiologist = () => {
+    return (
+      <>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Choose Available Radiologists (Select Exactly 3) *
@@ -929,7 +680,7 @@ const renderAvailableRadiologist = () => {
             onChange={handleRadiologistChange}
             placeholder={`Select exactly 3 radiologists (${selectedRadiologists.length}/3 selected)`}
             display="chip"
-            className={`w-full ${isRadiologistInvalid ? 'p-invalid' : ''}`}
+            className={`w-full ${isRadiologistInvalid ? "p-invalid" : ""}`}
             panelClassName="mt-1"
             maxSelectedLabels={3}
             filter
@@ -938,25 +689,25 @@ const renderAvailableRadiologist = () => {
           />
           {isRadiologistInvalid && selectedRadiologists.length < 3 && (
             <small className="text-red-500">
-              Please select exactly 3 radiologists. Currently selected: {selectedRadiologists.length}
+              Please select exactly 3 radiologists. Currently selected:{" "}
+              {selectedRadiologists.length}
             </small>
           )}
           {selectedRadiologists.length === 3 && (
-            <small className="text-green-600">
-              ✓ 3 radiologists selected
-            </small>
+            <small className="text-green-600">✓ 3 radiologists selected</small>
           )}
         </div>
       </>
-
-  );
-};
-
+    );
+  };
 
   // ================== SHELL ==================
   const headerElement = (
     <div className="flex items-center gap-3">
-      <button onClick={handleDialogClose} className="text-gray-500 hover:text-gray-700 text-xl">
+      <button
+        onClick={handleDialogClose}
+        className="text-gray-500 hover:text-gray-700 text-xl"
+      >
         ×
       </button>
       <span className="text-lg font-medium text-gray-800">Add New Predict</span>
@@ -979,9 +730,12 @@ const renderAvailableRadiologist = () => {
 
         {/* Steps + Role badge */}
         <div className="mb-6">
-          <Steps model={steps} activeIndex={activeIndex} className="custom-steps" />
+          <Steps
+            model={steps}
+            activeIndex={activeIndex}
+            className="custom-steps"
+          />
         </div>
-       
 
         {renderStepContent()}
 
@@ -1002,5 +756,3 @@ const renderAvailableRadiologist = () => {
     </Dialog>
   );
 };
-
-
