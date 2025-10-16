@@ -1,12 +1,11 @@
 import React from 'react';
 import { InputText } from 'primereact/inputtext';
 import { Calendar } from 'primereact/calendar';
-import { Dropdown } from 'primereact/dropdown';
 import type { DemographicForm, Sex } from '../../types';
 // import { normalizeVolunteerCode } from '../../helpers/helper';
 import { Button } from 'primereact/button';
 import { RadioButton } from 'primereact/radiobutton';
-//import 'primeflex/primeflex.css';
+ import 'primeflex/primeflex.css';
 
 interface DemographicFormStepProps {
   demographic: DemographicForm;
@@ -14,11 +13,7 @@ interface DemographicFormStepProps {
   generateVolunteerId: () => void;
 }
 
- const referralOptions = [
-    { label: "Radiology Clinic", value: "Radiology Clinic" },
-    { label: "Emergency Department", value: "Emergency Department" },
-    { label: "General Practice", value: "General Practice" },
-  ];
+
 
    const normalizeVolunteerCode = (code: string): string => {
   const trimmedCode = code.trim().toUpperCase();
@@ -133,17 +128,7 @@ const DemographicFormStep : React.FC<DemographicFormStepProps> = ({ demographic,
               />
             </div>
     
-            {/* Referred From */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Referred From</label>
-              <Dropdown
-                value={demographic.referredFrom}
-                options={referralOptions}
-                onChange={(e) => setDemographic((prev) => ({ ...prev, referredFrom: e.value }))}
-                className="w-full"
-                panelClassName="mt-1"
-              />
-            </div>
+         
     
             {/* Weight */}
             <div>

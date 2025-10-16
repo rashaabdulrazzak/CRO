@@ -13,7 +13,7 @@ export const menuConfig: MenuItem[] = [
   {
     label: 'Trial Cases',
     path: '/trial-cases',
-    roles: ['field_coordinator','monitor'],
+    roles: ['field_coordinator','monitor','biostatistician'],
     icon: 'pi pi-briefcase',
     description: 'Manage trial cases and patient data'
   },
@@ -27,21 +27,21 @@ export const menuConfig: MenuItem[] = [
   {
     label: 'AI Image Assessment',
     path: '/ai-assessment',
-    roles: ['field_coordinator','monitor'],
+    roles: ['field_coordinator','monitor','biostatistician'],
     icon: 'pi pi-images',
     description: 'Assess and evaluate medical images'
   },
   {
     label: 'Pathology of Cases',
     path: '/pathology-results',
-    roles: [ 'radiologist', 'monitor','patolog_coordinator'],
+    roles: [ 'radiologist', 'monitor','patolog_coordinator','biostatistician'],
     icon: 'pi pi-file',
     description: 'View pathology results and reports'
   },
   {
     label: 'Approval of Cases',
     path: '/approval-cases',
-    roles: ['monitor','radiologist','field_coordinator'],
+    roles: ['monitor','radiologist'],
     icon: 'pi pi-check-circle',
     description: 'Approve and validate cases'
   },
@@ -70,7 +70,7 @@ export const menuConfig: MenuItem[] = [
   {
     label: 'Download Data',
     path: '/data-download',
-    roles: ['monitor'],
+    roles: ['monitor','biostatistician'],
     icon: 'pi pi-download',
     description: 'Download data in Excel format'
   },

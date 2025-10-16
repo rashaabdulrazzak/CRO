@@ -2,7 +2,7 @@ import LayoutComponent from './routes/Layout/LayoutComponent';
 import './styles/App.scss'
 import { PrimeReactProvider } from 'primereact/api';
 import { BrowserRouter } from 'react-router-dom';
-//import 'primeflex/primeflex.css';
+// import 'primeflex/primeflex.css';
 
 import 'primereact/resources/primereact.min.css';
 

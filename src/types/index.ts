@@ -72,21 +72,11 @@ export const emptyDemographicForm: DemographicForm = {
 };
 export interface MedicalHistoryForm {
   medicalQuestion1: YesNo;
-  howManyYears: string;
-  medicalQuestion2: YesNo | "";
-  medicalQuestion3: YesNo | "";
-  medicalQuestion4: YesNo;
   diseaseType: string;
-  medicalQuestion5: YesNo | "";
 }
 export const emptyMedicalHistoryForm: MedicalHistoryForm = {
   medicalQuestion1: null,
-  howManyYears: "",
-  medicalQuestion2: "",
-  medicalQuestion3: "",
-  medicalQuestion4: null,
   diseaseType: "",
-  medicalQuestion5: "",
 };
 export type InclusionForm = {
   ageOver18: boolean | null;

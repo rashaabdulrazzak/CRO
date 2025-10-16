@@ -6,7 +6,7 @@ import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import "primereact/resources/themes/saga-blue/theme.css";
 import "primereact/resources/primereact.min.css";
-import StatCard from "../components/StatCard";
+// import StatCard from "../components/StatCard";
 import { Tag } from "primereact/tag";
 
 type UserRecord = {
@@ -58,7 +58,7 @@ const initialUserRecord: UserRecord[] = [
     lenght: 180,
     create_date: "2023-02-01",
     modify_date: "2023-02-15",
-    status: "On Hold",
+    status: "Completed",
   },
   {
     id: "0240",
@@ -98,7 +98,7 @@ const [dateOrder, setDateOrder] = useState<1 | -1>(1);
   const [dialogVisible, setDialogVisible] = useState(false);
   // const [isEdit, setIsEdit] = useState(false);
   const isEdit = false;
-const cards = [
+/* const cards = [
  
   {
     bgHex: "#FCF1F7",
@@ -126,7 +126,7 @@ const cards = [
     deltaDirection: "up" as const, // ✅ literal
     accentHex: "#2563EB",
   },
-] as const;
+] as const; */
 
 
   
@@ -273,7 +273,7 @@ const clearFilters = () => {
 
   return (
     <div >
-        <div className="my-2">
+        {/* <div className="my-2">
            <h3 className="text-2xl font-semibold ">Summary</h3>
         </div>
         
@@ -281,7 +281,7 @@ const clearFilters = () => {
   {cards.map((c, i) => (
     <StatCard key={i} {...c} />
   ))}
-</div>
+</div> */}
       
       <div className="flex items-center justify-between mt-8 mb-4">
     {/* Left: Title */}

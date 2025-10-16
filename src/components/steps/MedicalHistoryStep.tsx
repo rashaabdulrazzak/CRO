@@ -1,6 +1,6 @@
 import React from 'react';
 import { InputText } from 'primereact/inputtext';
-import { Dropdown } from 'primereact/dropdown';
+// import { Dropdown } from 'primereact/dropdown';
 import type { MedicalHistoryForm, YesNo } from '../../types';
 import { RadioButton } from 'primereact/radiobutton';
 
@@ -8,7 +8,7 @@ interface MedicalHistoryStepProps {
   medical: MedicalHistoryForm;
   setMedical: React.Dispatch<React.SetStateAction<MedicalHistoryForm>>;
 }
-const yearsOptions = ["1", "2", "3", "4", "5"].map((v) => ({ label: v, value: v }));
+// const yearsOptions = ["1", "2", "3", "4", "5"].map((v) => ({ label: v, value: v }));
 
 
 const MedicalHistoryStep : React.FC<MedicalHistoryStepProps> = ({ medical, setMedical }) => (
@@ -17,8 +17,7 @@ const MedicalHistoryStep : React.FC<MedicalHistoryStepProps> = ({ medical, setMe
            {/* Q1 */}
            <div className="flex items-center gap-4">
              <div className="flex items-center gap-2 min-w-[120px]">
-               <span className="text-sm text-gray-700">Question 1</span>
-               <i className="pi pi-info-circle text-gray-400 text-sm"></i>
+               <span className="block text-sm font-medium text-gray-700 mb-2 "> Known disease:</span>
              </div>
              <div className="flex gap-6">
                {(["yes", "no"] as YesNo[]).map((val) => (
@@ -39,7 +38,7 @@ const MedicalHistoryStep : React.FC<MedicalHistoryStepProps> = ({ medical, setMe
            </div>
      
            {/* years */}
-           <div>
+    {/*        <div>
              <label className="block text-sm font-medium text-gray-700 mb-2">How many years?</label>
              <Dropdown
                value={medical.howManyYears}
@@ -48,10 +47,10 @@ const MedicalHistoryStep : React.FC<MedicalHistoryStepProps> = ({ medical, setMe
                className="w-48"
                panelClassName="mt-1"
              />
-           </div>
+           </div> */}
      
            {/* Q2–Q5 */}
-           {[2, 3, 4, 5].map((n) => (
+        {/*    {[2, 3, 4, 5].map((n) => (
              <div className="flex items-center gap-4" key={n}>
                <div className="flex items-center gap-2 min-w-[120px]">
                  <span className="text-sm text-gray-700">Question {n}</span>
@@ -76,7 +75,7 @@ const MedicalHistoryStep : React.FC<MedicalHistoryStepProps> = ({ medical, setMe
                  ))}
                </div>
              </div>
-           ))}
+           ))} */}
      
            {/* disease type */}
            <div>

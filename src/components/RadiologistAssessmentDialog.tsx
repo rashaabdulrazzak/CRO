@@ -5,6 +5,9 @@ import { RadioButton } from "primereact/radiobutton";
 import { Button } from "primereact/button";
 import { Toast } from "primereact/toast";
 import { useRef } from "react";
+import MedicalImageViewer from "./MedicalImageViewer";
+import ImagePreviewDialog from "./ImagePreviewDialog";
+import { medicalImageService } from "../services/medicalImageService"; 
 
 interface RadiologistAssessmentDialogProps {
   visible: boolean;
@@ -22,7 +25,19 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
   volunteerCode 
 }) => {
   const toast = useRef<Toast>(null);
-  
+  // Medical images state
+  const [medicalImages, setMedicalImages] = useState<Array<{
+    id: string;
+    url: string;
+    isDicom: boolean;
+  }>>([]);
+  const [selectedImage, setSelectedImage] = useState<{
+    url: string;
+    isDicom: boolean;
+  } | null>(null);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [loadingImages, setLoadingImages] = useState(false);
+
   // Define initial/default state
   const getInitialState = () => ({
     composition: "cystic",
@@ -47,6 +62,30 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
   const [aiDiagnosticsData, setAiDiagnosticsData] = useState(getInitialState());
   const [isSaving, setIsSaving] = useState(false);
 
+  // Fetch medical images when dialog opens
+  useEffect(() => {
+    if (visible && (caseId || patientId)) {
+      fetchMedicalImages();
+    }
+  }, [visible, caseId, patientId]);
+
+  const fetchMedicalImages = async () => {
+    try {
+      setLoadingImages(true);
+      const images = await medicalImageService.fetchImagesByCase(caseId || null, patientId || null);
+      setMedicalImages(images);
+    } catch (error) {
+      console.error('Error fetching medical images:', error);
+      showToast('error', 'Error', 'Failed to load medical images');
+    } finally {
+      setLoadingImages(false);
+    }
+  };
+
+  const handleImageClick = (image: { url: string; isDicom: boolean }) => {
+    setSelectedImage(image);
+    setPreviewVisible(true);
+  };
   // Calculate points based on ACR TI-RADS criteria
   const calculateTotalPoints = useCallback (() => {
     let total = 0;
@@ -314,7 +353,7 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
         </div> */}
 
         {/* Composition Images */}
-        <div >
+       {/*  <div >
           <h3 className="text-lg font-medium text-gray-800 mb-4">Composition</h3>
           <div className="grid grid-cols-4 gap-4 mb-6">
             {[1, 2, 3, 4].map((imageNum) => (
@@ -330,6 +369,51 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
                 </div>
               </div>
             ))}
+          </div>
+        </div> */}
+        {/* Medical Images */}
+        <div>
+          <h3 className="text-lg font-medium text-gray-800 mb-4">
+            Medical Images
+            {loadingImages && <i className="pi pi-spin pi-spinner ml-2 text-sm"></i>}
+          </h3>
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            {loadingImages ? (
+              // Loading skeleton
+              Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="relative">
+                  <div className="w-full h-30 bg-gray-200 rounded-lg border border-gray-300 animate-pulse" />
+                </div>
+              ))
+            ) : medicalImages.length > 0 ? (
+              medicalImages.slice(0, 4).map((image, index) => (
+                <div key={image.id} className="relative cursor-pointer group">
+                  <MedicalImageViewer
+                    imageUrl={image.url}
+                    isDicom={image.isDicom}
+                    height="120px"
+                    onImageClick={() => handleImageClick(image)}
+                  />
+                  <div 
+                    className="absolute top-2 left-2 bg-black bg-opacity-60 rounded-full px-2 py-1 
+                               opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => handleImageClick(image)}
+                  >
+                    <i className="pi pi-eye text-white text-xs"></i>
+                    <span className="text-white text-xs ml-1">Preview</span>
+                  </div>
+                  {image.isDicom && (
+                    <div className="absolute bottom-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                      DICOM
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="col-span-4 text-center text-gray-500 py-8">
+                No medical images available
+              </div>
+            )}
           </div>
         </div>
 
