@@ -39,10 +39,10 @@ const NavBar = () => {
 
   const end = (
     <div className="flex items-center space-x-3 pr-6 ml-6">
-      <i className="pi pi-globe text-lg cursor-pointer"></i>
+{/*       <i className="pi pi-globe text-lg cursor-pointer"></i>
       <i className="pi pi-bell text-lg cursor-pointer"></i>
 
-      <i className="pi pi-clone text-lg cursor-pointer"></i>
+      <i className="pi pi-clone text-lg cursor-pointer"></i> */}
 
       <Avatar
         image={
