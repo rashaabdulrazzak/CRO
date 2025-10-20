@@ -1,16 +1,21 @@
 import * as cornerstone from '@cornerstonejs/core';
 import * as cornerstoneTools from '@cornerstonejs/tools';
-import cornerstoneDICOMImageLoader from '@cornerstonejs/dicom-image-loader';
-import dicomParser from 'dicom-parser';
 
 let isInitialized = false;
 
-export async function initCornerstone() {
+/**
+ * Minimal Cornerstone initialization without DICOM loader
+ * Use this if you're having issues with the full version
+ */
+export async function initCornerstone(): Promise<boolean> {
   if (isInitialized) {
+    console.log('Cornerstone already initialized');
     return true;
   }
 
   try {
+    console.log('🚀 Starting Cornerstone initialization (simple mode)...');
+
     // Initialize Cornerstone Core
     await cornerstone.init();
     console.log('✓ Cornerstone Core initialized');
@@ -19,62 +24,25 @@ export async function initCornerstone() {
     await cornerstoneTools.init();
     console.log('✓ Cornerstone Tools initialized');
 
-    // Configure DICOM Image Loader - set external dependencies
-    // @ts-ignore - external property exists at runtime
-    cornerstoneDICOMImageLoader.external.cornerstone = cornerstone;
-    // @ts-ignore - external property exists at runtime
-    cornerstoneDICOMImageLoader.external.dicomParser = dicomParser;
-
-    // Get rendering configuration safely
-    const renderingConfig = cornerstone.getConfiguration()?.rendering || {};
-    
-    // Configure DICOM loader with decode settings
-    const config: any = {
-      useWebWorkers: true,
-      decodeConfig: {
-        convertFloatPixelDataToInt: false,
-        use16BitDataType: Boolean(
-          (renderingConfig as any).preferSizeOverAccuracy || 
-          (renderingConfig as any).useNorm16Texture
-        ),
-      },
-    };
-
-    cornerstoneDICOMImageLoader.configure(config);
-
-    // Initialize web workers for better performance
-    let maxWebWorkers = 1;
-    if (navigator.hardwareConcurrency) {
-      maxWebWorkers = Math.min(navigator.hardwareConcurrency, 7);
-    }
-
-    const webWorkerConfig = {
-      maxWebWorkers,
-      startWebWorkersOnDemand: false,
-      taskConfiguration: {
-        decodeTask: {
-          initializeCodecsOnStartup: false,
-          strict: false,
-        },
-      },
-    };
-
-    cornerstoneDICOMImageLoader.webWorkerManager.initialize(webWorkerConfig);
-    console.log('✓ DICOM Image Loader initialized with', maxWebWorkers, 'workers');
-
     isInitialized = true;
+    console.log('✅ Cornerstone initialized successfully!');
     return true;
   } catch (error) {
-    console.error('Failed to initialize Cornerstone:', error);
+    console.error('❌ Cornerstone initialization failed:', error);
     isInitialized = false;
-    return false;
+    throw error;
   }
 }
 
-export function getIsInitialized() {
+export function getIsInitialized(): boolean {
   return isInitialized;
 }
 
-export function resetInitialization() {
+export function resetInitialization(): void {
   isInitialized = false;
+}
+
+// Dummy function for compatibility
+export function registerDICOMImageLoader(): void {
+  console.log('DICOM loader registration skipped (simple mode)');
 }

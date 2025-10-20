@@ -31,11 +31,11 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
     url: string;
     isDicom: boolean;
   }>>([]);
-  const [selectedImage, setSelectedImage] = useState<{
-    url: string;
-    isDicom: boolean;
-  } | null>(null);
+
+  const [selectedImage, setSelectedImage] = useState<{ url: string; isDicom: boolean } | null>(null);
   const [previewVisible, setPreviewVisible] = useState(false);
+      const isPreviewDialogVisible = !!selectedImage;
+
   const [loadingImages, setLoadingImages] = useState(false);
 
   // Define initial/default state
@@ -188,17 +188,20 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
     // Set the appropriate TR level
     updatedPoints[trLevel as keyof typeof updatedPoints] = true;
 
-    setAiDiagnosticsData((prev) => ({
+    if (JSON.stringify(aiDiagnosticsData.points) !== JSON.stringify(updatedPoints)){
+ setAiDiagnosticsData((prev) => ({
       ...prev,
       points: updatedPoints,
     }));
+    }
+   
   }, [
     aiDiagnosticsData.composition,
     aiDiagnosticsData.echogenicity,
     aiDiagnosticsData.shape,
     aiDiagnosticsData.margin,
     aiDiagnosticsData.echogenicFocii,
-    calculateTotalPoints,
+    calculateTotalPoints,aiDiagnosticsData.points
   ]);
 
   // Load existing assessment data when dialog opens OR reset to default
@@ -353,7 +356,7 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
         </div> */}
 
         {/* Composition Images */}
-       {/*  <div >
+      {/*  <div >
           <h3 className="text-lg font-medium text-gray-800 mb-4">Composition</h3>
           <div className="grid grid-cols-4 gap-4 mb-6">
             {[1, 2, 3, 4].map((imageNum) => (
@@ -370,52 +373,79 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
               </div>
             ))}
           </div>
-        </div> */}
+        </div>  */}
         {/* Medical Images */}
-        <div>
-          <h3 className="text-lg font-medium text-gray-800 mb-4">
-            Medical Images
-            {loadingImages && <i className="pi pi-spin pi-spinner ml-2 text-sm"></i>}
-          </h3>
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            {loadingImages ? (
-              // Loading skeleton
-              Array.from({ length: 4 }).map((_, index) => (
-                <div key={index} className="relative">
-                  <div className="w-full h-30 bg-gray-200 rounded-lg border border-gray-300 animate-pulse" />
-                </div>
-              ))
-            ) : medicalImages.length > 0 ? (
-              medicalImages.slice(0, 4).map((image, index) => (
-                <div key={image.id} className="relative cursor-pointer group">
-                  <MedicalImageViewer
-                    imageUrl={image.url}
-                    isDicom={image.isDicom}
-                    height="120px"
-                    onImageClick={() => handleImageClick(image)}
-                  />
-                  <div 
-                    className="absolute top-2 left-2 bg-black bg-opacity-60 rounded-full px-2 py-1 
-                               opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => handleImageClick(image)}
-                  >
-                    <i className="pi pi-eye text-white text-xs"></i>
-                    <span className="text-white text-xs ml-1">Preview</span>
-                  </div>
-                  {image.isDicom && (
-                    <div className="absolute bottom-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                      DICOM
-                    </div>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div className="col-span-4 text-center text-gray-500 py-8">
-                No medical images available
-              </div>
-            )}
-          </div>
+        <div className="grid grid-cols-3 gap-4 mb-6">
+  {loadingImages ? (
+    Array.from({ length: 3 }).map((_, index) => (
+      <div key={index} className="relative">
+        <div className="w-full h-30 bg-gray-200 rounded-lg border border-gray-300 animate-pulse" />
+      </div>
+    ))
+  ) : medicalImages.length > 0 ? (
+    medicalImages.slice(0, 3).map((image) => (
+      <div key={image.id} className="relative cursor-pointer group">
+        <MedicalImageViewer
+          imageUrl={image.url}
+          isDicom={image.isDicom}
+          width="100%"      
+          height="120px"
+          onImageClick={() => handleImageClick(image)}
+        />
+        <div className="absolute top-2 left-2 bg-black bg-opacity-60 rounded-full px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <i className="pi pi-eye text-white text-xs"></i>
+          <span className="text-white text-xs ml-1">Preview</span>
         </div>
+        {image.isDicom && (
+          <div className="absolute bottom-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+            DICOM
+          </div>
+        )}
+      </div>
+    ))
+  ) : (
+    <div className="col-span-3 text-center text-gray-500 py-8"> {/* ← also update this to col-span-3 */}
+      No medical images available
+    </div>
+  )}
+</div>
+        <div className="grid grid-cols-4 gap-4 mb-6">
+  {/* {loadingImages ? (
+    // Loading skeleton
+    Array.from({ length: 4 }).map((_, index) => (
+      <div key={index} className="relative">
+        <div className="w-full h-30 bg-gray-200 rounded-lg border border-gray-300 animate-pulse" />
+      </div>
+    ))
+  ) : medicalImages.length > 0 ? (
+    medicalImages.slice(0, 4).map((image, index) => (
+      <div key={image.id} className="relative cursor-pointer group">
+        <SimpleImageViewer
+          imageUrl={image.url}
+          height="120px"
+          onImageClick={() => handleImageClick(image)}
+        />
+        <div 
+          className="absolute top-2 left-2 bg-black bg-opacity-60 rounded-full px-2 py-1 
+                     opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={() => handleImageClick(image)}
+        >
+          <i className="pi pi-eye text-white text-xs"></i>
+          <span className="text-white text-xs ml-1">Preview</span>
+        </div>
+        {image.isDicom && (
+          <div className="absolute bottom-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+            DICOM
+          </div>
+        )}
+      </div>
+    ))
+  ) : (
+    <div className="col-span-4 text-center text-gray-500 py-8">
+      No medical images available
+    </div>
+  )} */}
+</div>
 
         {/* Composition Radio Buttons */}
         <div className="p-4 border border-gray-200 rounded-lg">
@@ -777,6 +807,14 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
           {renderAIDiagnostics()}
         </div>
       </Dialog>
+      {isPreviewDialogVisible && selectedImage && (
+        <ImagePreviewDialog
+          visible={previewVisible}
+          onHide={() => setPreviewVisible(false)}
+          imageUrl={selectedImage.url}
+          isDicom={selectedImage.isDicom}
+        />
+      )}
     </>
   );
 };
