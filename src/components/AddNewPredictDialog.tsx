@@ -196,7 +196,9 @@ export const AddNewPredictDialog: React.FC<AddNewPredictDialogProps> = ({
     []
   );
   const [isRadiologistInvalid, setIsRadiologistInvalid] = useState(false);
-  const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
+  //const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
+  // In parent component
+  const [uploadedPhotos, setUploadedPhotos] = useState<(File | null)[]>([null, null, null]);
 
   // ---- load draft + revive dates
   useEffect(() => {
@@ -229,7 +231,8 @@ export const AddNewPredictDialog: React.FC<AddNewPredictDialogProps> = ({
       medical,
       inclusion,
       exclusion,
-      uploadedPhotos,
+      //uploadedPhotos,
+      
       patientId,
       caseId,
       selectedRadiologists, // Add this
@@ -241,7 +244,8 @@ export const AddNewPredictDialog: React.FC<AddNewPredictDialogProps> = ({
     medical,
     inclusion,
     exclusion,
-    uploadedPhotos,
+   // uploadedPhotos,
+   
     selectedRadiologists,
     isRadiologistInvalid,
     patientId,
@@ -508,7 +512,7 @@ export const AddNewPredictDialog: React.FC<AddNewPredictDialogProps> = ({
 
         // ✅ FIX: Handle File objects correctly
         // Convert File objects to data URLs for local storage or prepare for upload
-        for (let i = 0; i < uploadedPhotos.length; i++) {
+       /*  for (let i = 0; i < uploadedPhotos.length; i++) {
           const file = uploadedPhotos[i];
           const imgId = makeImageId(base, i);
 
@@ -524,7 +528,7 @@ export const AddNewPredictDialog: React.FC<AddNewPredictDialogProps> = ({
             caseId: localCase.id,
             kind: "USG",
             url: dataUrl,
-            contentType: file.type,
+            contentType: file?.type,
           });
 
           if (USE_BACKEND) {
@@ -541,13 +545,53 @@ export const AddNewPredictDialog: React.FC<AddNewPredictDialogProps> = ({
                 body: formData,
               });
             } catch (err) {
-              console.error(`Failed to upload ${file.name}:`, err);
-              showError(`Failed to upload ${file.name}`);
+              console.error(`Failed to upload ${file?.name}:`, err);
+              showError(`Failed to upload ${file?.name}`);
               return;
             }
           }
-        }
+        } */
 
+        // Inside handleSaveAndNext(), final step (activeIndex === 5)
+for (let i = 0; i < uploadedPhotos.length; i++) {
+  const file = uploadedPhotos[i];
+  if (!file) continue; // skip empty slots
+
+  const imgId = makeImageId(base, i);
+
+  // 🔸 1. Upload to backend (if enabled)
+  if (USE_BACKEND) {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("kind", "USG");
+    formData.append("imageId", imgId);
+    formData.append("createdByUserId", "1");
+
+    try {
+      const res = await fetch(`/uploads/cases/${localCase.id}`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+    } catch (err) {
+      console.error(`Upload failed for ${file.name}:`, err);
+      showError(`Failed to upload ${file.name}`);
+      return; // stop on first failure
+    }
+  }
+
+  // 🔸 2. Store ONLY METADATA in localStorage (NOT file content!)
+  createUploadLocal({
+    caseId: localCase.id,
+    kind: "USG",
+    // DO NOT store url as data URL!
+    // Instead, store imageId or leave url empty
+    url: USE_BACKEND 
+      ? `/uploads/${imgId}` // or whatever your backend returns
+      : "", // or omit entirely
+    contentType: file.type,
+  });
+}
         // Visit/administrative form
         const visitPayload = {
           volunteerCode: base,

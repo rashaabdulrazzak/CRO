@@ -346,6 +346,7 @@ export default function PredictData() {
               label="Confirm"
               text
               className="p-button-sm"
+              
               onClick={() => openAction(rowData)}
             />
           )}

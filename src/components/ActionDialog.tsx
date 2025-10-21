@@ -108,11 +108,12 @@ export default function ActionDialog({
       contentClassName="p-6"
       footer={
         <div className="flex justify-end gap-2">
-          <Button label="Cancel" className="p-button-outlined" onClick={onCancel} />
+          <Button label="Cancel"  className="px-6 py-2 text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+ onClick={onCancel} />
           <Button
             label="Submit"
             icon="pi pi-check"
-            className="p-button-secondary"
+            className="px-6 py-2 rounded-md p-button-secondary"
             onClick={handleSubmit}
             disabled={!canSubmit}
           />
