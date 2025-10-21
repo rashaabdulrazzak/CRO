@@ -18,7 +18,7 @@ const MedicalHistoryStep : React.FC<MedicalHistoryStepProps> = ({ medical, setMe
            <div className="flex items-center gap-4">
              <div className="flex items-center gap-2 min-w-[120px]">
                <span className="block text-sm font-medium text-gray-700 mb-2 "> Known disease:</span>
-             </div>
+               </div>
              <div className="flex gap-6">
                {(["yes", "no"] as YesNo[]).map((val) => (
                  <div className="flex items-center" key={val}>

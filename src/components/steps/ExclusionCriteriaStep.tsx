@@ -10,7 +10,7 @@ interface ExclusionFormStepProps {
 
 const ExclusionFormStep : React.FC<ExclusionFormStepProps> = ({ exclusion, setExclusion }) => (
 
- <div className="bg-white border border-gray-200 rounded-lg p-6">
+ <div className="bg-white  rounded-lg p-6">
       <h2 className="text-xl font-semibold text-gray-900 mb-4">Hariç Tutma Kriterleri</h2>
       <p className="text-sm text-gray-600 mb-6">
         Aşağıdaki kriterlerin en az birinin <strong>“Evet”</strong> olması hastanın hariç tutulmasını gerektirir.

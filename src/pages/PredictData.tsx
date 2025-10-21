@@ -55,7 +55,7 @@ const getPatientsFromStorage = (): UserRecord[] => {
         lenght: parseFloat(formData.size) || 0,
         create_date: new Date(patient.createdAt).toISOString().split('T')[0],
         modify_date: new Date(patient.createdAt).toISOString().split('T')[0],
-        status: patientCase ? "in Progress" : "to do",
+        status:  "To Do",
       };
     });
   } catch (error) {

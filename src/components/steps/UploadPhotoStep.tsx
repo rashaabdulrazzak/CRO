@@ -55,35 +55,35 @@ const UploadPhotoStep: React.FC<UploadPhotoStepProps> = ({
     });
   };
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="flex flex-col">
-          <label className="mb-2 font-medium">Image {i + 1}</label>
-          <FileUpload
-            name={`file-${i}`}
-            accept=".png,.dcm,image/png,application/dicom"
-            maxFileSize={5000000}
-            multiple={false}
-            mode="basic"
-            chooseLabel={uploadedPhotos[i] ? "Change" : "Choose File"}
-            cancelLabel="Clear"
-            onSelect={handleSelect(i)}
-            onRemove={handleRemove(i)}
-            customUpload // prevents auto POST
-            uploadHandler={() => {}} // noop
-            style={{ width: '100%' }}
-          />
-          {uploadedPhotos[i] && (
-            <small className="mt-1 text-sm text-gray-600">
-              {uploadedPhotos[i]?.name} ({Math.round((uploadedPhotos[i]!.size / 1024))} KB)
-            </small>
-          )}
-        </div>
-      ))}
-      <Toast ref={toast} />
-    </div>
-  );
+return (
+  <div className="flex flex-col gap-6">
+    {[0, 1, 2].map((i) => (
+      <div key={i} className="flex flex-col">
+        <label className="mb-2 font-medium">Image {i + 1}</label>
+        <FileUpload
+          name={`file-${i}`}
+          accept=".png,.dcm,image/png,application/dicom"
+          maxFileSize={5000000}
+          multiple={false}
+          mode="basic"
+          chooseLabel={uploadedPhotos[i] ? "Change" : "Choose File"}
+          cancelLabel="Clear"
+          onSelect={handleSelect(i)}
+          onRemove={handleRemove(i)}
+          customUpload
+          uploadHandler={() => {}}
+          style={{ width: '100%' }}
+        />
+        {uploadedPhotos[i] && (
+          <small className="mt-1 text-sm text-gray-600">
+            {uploadedPhotos[i]?.name} ({Math.round(uploadedPhotos[i]!.size / 1024)} KB)
+          </small>
+        )}
+      </div>
+    ))}
+    <Toast ref={toast} />
+  </div>
+);
 };
 
 export default UploadPhotoStep;

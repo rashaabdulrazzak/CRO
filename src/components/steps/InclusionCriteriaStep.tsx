@@ -10,9 +10,9 @@ interface InclusionCriteriaStepProps {
 
 const InclusionCriteriaStep : React.FC<InclusionCriteriaStepProps> = ({ inclusion, setInclusion }) => (
 
-  <div className="bg-white border border-gray-200 rounded-lg p-6">
+  <div className="bg-white  rounded-lg p-6">
       <h2 className="text-xl font-semibold text-gray-900 mb-2">Dahil Etme Kriterleri</h2>
-      <p className="text-sm text-gray-600 mb-6">
+      <p className="text-sm text-gray-600 mb-4">
         Aşağıdaki kriterlerin hepsinin işaretlenmesi gönüllünün dahil edilme kriterlerini karşıladığını
         göstermektedir.
       </p>

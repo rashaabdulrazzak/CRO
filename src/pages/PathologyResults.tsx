@@ -12,6 +12,7 @@ import { getPatients, savePatients, type Patient,type PatientImage } from '../li
 import { useAuth } from '../components/AuthContext';
 
 
+type DecisionType = 'biopsy_required' | 'biopsy_not_required' | 'pending';
 
 export default function PathologyResults() {
   const { user } = useAuth();
@@ -31,6 +32,7 @@ export default function PathologyResults() {
 
       return;
     }
+    console.log('Searching for Volunteer ID:', patients);
 
     const patient = patients.find((p) => p.volunteerId.toLowerCase().includes(searchId.toLowerCase()));
     if (patient) {
@@ -60,53 +62,77 @@ export default function PathologyResults() {
     }));
   };
 
-  const saveEvaluation = (imageId: string) => {
-    if (!selectedPatient || !user) return;
+ // eslint-disable-next-line @typescript-eslint/no-explicit-any
+ const saveEvaluation = (imageId:any) => {
+  if (!selectedPatient || !user) return;
 
-    const evaluation = evaluationData[imageId];
-    if (!evaluation || evaluation.decision === 'pending') {
-      toast.current?.show({severity:'error', summary: 'Error', detail:'Please make a decision before saving', life: 3000});
-
-      return;
-    }
-
-    const updatedPatients = patients.map((patient) => {
-      if (patient.id === selectedPatient.id) {
-        const updatedImages = patient.images.map((image) => {
-          if (image.id === imageId) {
-            const updatedEvaluations = image.evaluations.map((imageEvaluation) => {
-              if (imageEvaluation.radiologistId === user.id) {
-                return {
-                  ...imageEvaluation,
-                  decision: evaluation.decision as 'biopsy_required' | 'biopsy_not_required',
-                  notes: evaluation.notes,
-                  evaluationDate: new Date().toISOString(),
-                };
-              }
-              return imageEvaluation;
-            });
-            return { ...image, evaluations: updatedEvaluations };
-          }
-          return image;
-        });
-        return { ...patient, images: updatedImages };
-      }
-      return patient;
+  const evaluation = evaluationData[imageId];
+  if (!evaluation || evaluation.decision === 'pending') {
+    toast.current?.show({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Please make a decision before saving',
+      life: 3000,
     });
+    return;
+  }
 
-    setPatients(updatedPatients);
-    savePatients(updatedPatients);
-    const updatedSelected = updatedPatients.find((p) => p.id === selectedPatient.id);
-    setSelectedPatient(updatedSelected || null);
+  // Map Bethesda to biopsy decision for saving
+  const mappedDecision = mapBethesdaToDecision(evaluation.decision);
 
-    // Check consensus after saving
-    if (updatedSelected) {
-      checkConsensus(imageId, updatedSelected);
+  const updatedPatients = patients.map((patient) => {
+    if (patient.id === selectedPatient.id) {
+      const updatedImages = patient.images.map((image) => {
+        if (image.id === imageId) {
+   const  updatedEvaluations = image.evaluations.map((imageEvaluation) => {
+  if (imageEvaluation.radiologistId === user.id) {
+    // Update existing record
+    return {
+      ...imageEvaluation,
+      decision: mappedDecision,
+      notes: evaluation.notes,
+      evaluationDate: new Date().toISOString(),
+      radiologistName: user.username, // ✅ ensure live user mapping
+    };
+  }
+  return imageEvaluation;
+});
+// Check if user's evaluation exists; if not, push a new one
+if (!image.evaluations.some((e) => e.radiologistId === user.id)) {
+  updatedEvaluations.push({
+    id: crypto.randomUUID(),
+    radiologistId: user.id,
+    radiologistName: user.username,
+    decision: mappedDecision,
+    notes: evaluation.notes,
+    evaluationDate: new Date().toISOString(),
+  });
+}
+
+          return { ...image, evaluations: updatedEvaluations };
+        }
+        return image;
+      });
+      return { ...patient, images: updatedImages };
     }
+    return patient;
+  });
 
-    toast.current?.show({severity:'success', summary: 'Success', detail:'Evaluation saved successfully', life: 3000});
+  setPatients(updatedPatients);
+  savePatients(updatedPatients);
+  const updatedSelected = updatedPatients.find((p) => p.id === selectedPatient.id);
+  setSelectedPatient(updatedSelected || null);
 
-  };
+  if (updatedSelected) checkConsensus(imageId, updatedSelected);
+
+  toast.current?.show({
+    severity: 'success',
+    summary: 'Success',
+    detail: 'Evaluation saved successfully',
+    life: 3000,
+  });
+};
+
 
   const checkConsensus = (imageId: string, patient: Patient | undefined) => {
     if (!patient) return;
@@ -144,15 +170,29 @@ export default function PathologyResults() {
    /*  { label: 'Biopsy Required', value: 'biopsy_required' },
     { label: 'Biopsy Not Required', value: 'biopsy_not_required' }, */
   ];
+ const mapBethesdaToDecision = (value: string): DecisionType => {
+  switch (value) {
+    case '4':
+    case '5':
+      return 'biopsy_required';
+    case '1':
+    case '2':
+    case '3':
+      return 'biopsy_not_required';
+    case 'pending':
+    default:
+      return 'pending';
+  }
+};
 
   const getDecisionTag = (decision: string) => {
     switch (decision) {
       case 'biopsy_required':
-        return <Tag severity="danger" value="Biopsy Required" />;
+        return <Tag className=" warning-tag p-tag p-component p-tag-warning" severity="danger" value="Biopsy Required" />;
       case 'biopsy_not_required':
-        return <Tag severity="success" value="No Biopsy Needed" />;
+        return <Tag  className=' success-tag' severity="success" value="No Biopsy Needed" />;
       default:
-        return <Tag value="Pending" />;
+        return <Tag className=' info-tag' value="Pending" />;
     }
   };
 
@@ -204,7 +244,8 @@ export default function PathologyResults() {
                 icon="pi pi-search"
                 label="Search"
                 onClick={handleSearch}
-                className="mt-2 md:mt-0"
+                //className="mt-2 md:mt-0"
+                className="mt-2 md:mt-0 px-6 py-2 rounded-md p-button-secondary"
               />
             </div>
           </div>
@@ -271,7 +312,7 @@ export default function PathologyResults() {
                   </div>
   {/* Current User's Evaluation */}
                   {user && (
-                    <div className="border-t pt-6">
+                    <div className="border-t py-6">
                       <h4 className="font-medium mb-3">Your Evaluation</h4>
                       <div className="space-y-4">
                         <div>
@@ -306,6 +347,7 @@ export default function PathologyResults() {
                             selectedPatient.isLocked ||
                             evaluationData[image.id]?.decision === 'pending'
                           }
+                           className="mt-2 md:mt-0 px-6 py-2 rounded-md p-button-secondary"
                         />
                       </div>
                     </div>
