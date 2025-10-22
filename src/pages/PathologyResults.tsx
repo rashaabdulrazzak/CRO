@@ -49,7 +49,7 @@ function getDecisionTag(decision: string) {
 }
 
 export default function PathologyResults() {
-  const { user } = useAuth(); // user.role: 'radiologist' or 'patolog_coordinator'
+  const { user } = useAuth(); // user.role: 'radiologist', 'patolog_coordinator', or 'monitor'
   const [searchId, setSearchId] = useState('');
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -99,9 +99,10 @@ export default function PathologyResults() {
     setEvaluation((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Only coordinator can save evaluation
+  // Coordinator or Monitor can save evaluation
+  const canEdit = user?.role === 'patolog_coordinator' || user?.role === 'monitor';
   const saveEvaluation = () => {
-    if (!selectedPatient || !user || user.role !== 'patolog_coordinator') return;
+    if (!selectedPatient || !user || !canEdit) return;
     if (evaluation.decision === 'pending') {
       toast.current?.show({
         severity: 'error',
@@ -221,7 +222,7 @@ export default function PathologyResults() {
             {/* Evaluation section */}
             <Card className="mb-6">
               <div className="p-4 border-b">
-                <span className="text-lg font-semibold">{user?.role !== 'patolog_coordinator' ? 'Pathology Evaluation ': 'Your Evaluation'}</span>
+                <span className="text-lg font-semibold">{!canEdit ? 'Pathology Evaluation ': 'Your Evaluation'}</span>
                 {selectedPatient.evaluation?.decision && (
                   <span className="ml-4">{getDecisionTag(selectedPatient.evaluation.decision)}</span>
                 )}
@@ -229,7 +230,7 @@ export default function PathologyResults() {
               <div className="p-4">
                 <div>
                   <label className="block text-sm mb-2">
-                    {user?.role !== 'patolog_coordinator' ? 'Decision Made by Pathology ': 'Your Decision'}</label>
+                    {!canEdit ? 'Decision Made by Pathology ': 'Your Decision'}</label>
                   <Dropdown
                     value={evaluation.decision}
                     onChange={(e) => handleEvaluationChange('decision', e.value)}
@@ -238,21 +239,21 @@ export default function PathologyResults() {
                     optionValue="value"
                     placeholder="Select decision"
                     className="w-full"
-                    disabled={user?.role !== 'patolog_coordinator' || selectedPatient.isLocked}
+                    disabled={!canEdit || selectedPatient.isLocked}
                   />
                 </div>
                 <div className="mt-4">
                   <label className="block text-sm mb-2">
-                     {user?.role !== 'patolog_coordinator' ? 'Notes Made by Pathology ': 'Your Notes'}</label>
+                     {!canEdit ? 'Notes Made by Pathology ': 'Your Notes'}</label>
                   <InputTextarea
                     value={evaluation.notes}
                     onChange={(e) => handleEvaluationChange('notes', e.target.value)}
                     rows={3}
                     className="w-full"
-                    disabled={user?.role !== 'patolog_coordinator' || selectedPatient.isLocked}
+                    disabled={!canEdit || selectedPatient.isLocked}
                   />
                 </div>
-                {user?.role === 'patolog_coordinator' && (
+                {canEdit && (
                   <Button
                     label="Save Evaluation"
                     onClick={saveEvaluation}
@@ -262,8 +263,8 @@ export default function PathologyResults() {
                 )}
               </div>
             </Card>
-            {/* All Radiologist Evaluations - only for coordinator */}
-            {user?.role === 'patolog_coordinator' && (
+            {/* All Radiologist Evaluations - coordinator and monitor */}
+            {canEdit && (
               <Card>
                 <div className="p-4">
                   <h4 className="font-medium mb-3">All Radiologist Evaluations</h4>
