@@ -192,6 +192,7 @@ export default function LockedData() {
                       outlined={patient.isLocked}
                       icon={patient.isLocked ? 'pi pi-lock-open' : 'pi pi-lock'}
                       label={patient.isLocked ? 'Unlock' : 'Lock'}
+                      className={patient.isLocked ? 'unlock-btn' : 'add-btn'}
                       size="small"
                     />
                   </div>

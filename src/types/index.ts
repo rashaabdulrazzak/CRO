@@ -108,3 +108,15 @@ export interface AssessmentData {
     bethesda:BethesdaLevel;
   };
 }
+export type DecisionType = 'pending' | 'biopsy_required' | 'biopsy_not_required';
+
+export interface ImageEvaluation {
+  id: string;
+  radiologistId: string;
+  radiologistName: string;
+  decision: DecisionType;
+  evaluationDate?: string;
+  notes: string;
+}
+
+export type RadiologistEvaluation = ImageEvaluation;

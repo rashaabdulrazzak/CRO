@@ -147,7 +147,7 @@ export const mockPatients: Patient[] = [
       id: "2",
       radiologistId: "3",
       radiologistName: "Dr. Johnson",
-      decision: "Normal",
+      decision: "biopsy_not_required",
       evaluationDate: "...",
       notes: "..."
     },
@@ -155,7 +155,7 @@ export const mockPatients: Patient[] = [
       id: "3",
       radiologistId: "4",
       radiologistName: "Dr. Smith",
-      decision: "Piopsy Required",
+      decision: "biopsy_required",
       evaluationDate: "...",
       notes: "..."
     }
@@ -208,7 +208,7 @@ export const mockPatients: Patient[] = [
       id: "2",
       radiologistId: "3",
       radiologistName: "Dr. Johnson",
-      decision: "Normal",
+      decision: "biopsy_not_required",
       evaluationDate: "...",
       notes: "..."
     },
@@ -216,7 +216,7 @@ export const mockPatients: Patient[] = [
       id: "3",
       radiologistId: "4",
       radiologistName: "Dr. Smith",
-      decision: "Piopsy Required",
+      decision: "biopsy_required",
       evaluationDate: "...",
       notes: "..."
     }
