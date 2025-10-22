@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useCallback } from "react";
 import { Dialog } from "primereact/dialog";
 import { Checkbox } from "primereact/checkbox";
@@ -57,6 +58,11 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
       tr4: false,
       tr5: false,
     },
+    biopsyNeedEvaluation: {
+    fnaNeeded: false,
+    normal: false,
+  }
+
   });
 
   const [aiDiagnosticsData, setAiDiagnosticsData] = useState(getInitialState());
@@ -212,6 +218,7 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
       if (existingAssessments) {
         const assessmentsList = JSON.parse(existingAssessments);
         const existingAssessment = assessmentsList.find(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (item: any) => item.caseId === caseId || item.volunteerCode === volunteerCode
         );
         
@@ -235,6 +242,10 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
               tr4: false,
               tr5: false,
             },
+            biopsyNeedEvaluation: existingAssessment.biopsyNeedEvaluation || {
+              fnaNeeded: false,
+              normal: false,
+            }
           });
         } else {
           // No existing assessment found - reset to default
@@ -770,8 +781,56 @@ const RadiologistAssessmentDialog: React.FC<RadiologistAssessmentDialogProps> = 
                 TR5 (7+ points) - Highly Suspicious
               </div>
             </div>
+           
           </div>
+        
         </div>
+         
+   {/* Biopsy Need Evaluation */}
+<div className="p-4 border border-gray-200 rounded-lg">
+  <h3 className="text-lg font-medium text-gray-800 mb-4">
+    Biopsy Need Evaluation
+  </h3>
+  <div className="flex flex-col space-y-3">
+    <div className="flex items-center gap-3">
+      <Checkbox
+        inputId="fnaNeeded"
+        checked={aiDiagnosticsData.biopsyNeedEvaluation.fnaNeeded}
+        onChange={() =>
+          setAiDiagnosticsData((prev) => ({
+            ...prev,
+            biopsyNeedEvaluation: {
+              fnaNeeded: true,
+              normal: false,
+            },
+          }))
+        }
+      />
+      <label htmlFor="fnaNeeded" className="text-sm text-gray-700">
+        FNA Needed
+      </label>
+    </div>
+    <div className="flex items-center gap-3">
+      <Checkbox
+        inputId="normal"
+        checked={aiDiagnosticsData.biopsyNeedEvaluation.normal}
+        onChange={() =>
+          setAiDiagnosticsData((prev) => ({
+            ...prev,
+            biopsyNeedEvaluation: {
+              fnaNeeded: false,
+              normal: true,
+            },
+          }))
+        }
+      />
+      <label htmlFor="normal" className="text-sm text-gray-700">
+        Normal
+      </label>
+    </div>
+  </div>
+</div>
+
       </div>
     );
   };
