@@ -8,169 +8,21 @@ import { Dropdown } from 'primereact/dropdown';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Toast } from 'primereact/toast';
 // Data
-import { getPatients, savePatients, type Patient,type PatientImage } from '../lib/mockData';
+import { getPatients, savePatients, type Patient, type RadiologistEvaluation } from '../lib/mockData';
 import { useAuth } from '../components/AuthContext';
-
 
 type DecisionType = 'biopsy_required' | 'biopsy_not_required' | 'pending';
 
-export default function PathologyResults() {
-  const { user } = useAuth();
-  const [searchId, setSearchId] = useState('');
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [patients, setPatients] = useState<Patient[]>([]);
-  const [evaluationData, setEvaluationData] = useState<Record<string, { decision: string; notes: string }>>({});
-  const toast = useRef<Toast>(null);
+const decisionOptions = [
+  { label: 'Pending', value: 'pending' },
+  { label: 'Bethesda I', value: '1' },
+  { label: 'Bethesda II', value: '2' },
+  { label: 'Bethesda III', value: '3' },
+  { label: 'Bethesda IV', value: '4' },
+  { label: 'Bethesda V - VI', value: '5' },
+];
 
-  useEffect(() => {
-    setPatients(getPatients());
-  }, []);
-
-  const handleSearch = () => {
-    if (!searchId.trim()) {
-      toast.current?.show({severity:'error', summary: 'Error', detail:'Please enter a Volunteer ID', life: 3000});
-
-      return;
-    }
-    console.log('Searching for Volunteer ID:', patients);
-
-    const patient = patients.find((p) => p.volunteerId.toLowerCase().includes(searchId.toLowerCase()));
-    if (patient) {
-      setSelectedPatient(patient);
-      const initialData: Record<string, { decision: string; notes: string }> = {};
-      patient.images.forEach((image) => {
-        const existingEval = image.evaluations.find((evalItem) => evalItem.radiologistId === user?.id);
-        initialData[image.id] = {
-          decision: existingEval?.decision || 'pending',
-          notes: existingEval?.notes || '',
-        };
-      });
-      setEvaluationData(initialData);
-    } else {
-      setSelectedPatient(null);
-     toast.current?.show({severity:'error', summary: 'Error', detail:'Patient not found', life: 3000});
-    }
-  };
-
-  const handleEvaluationChange = (imageId: string, field: 'decision' | 'notes', value: string) => {
-    setEvaluationData((prev) => ({
-      ...prev,
-      [imageId]: {
-        ...prev[imageId],
-        [field]: value,
-      },
-    }));
-  };
-
- // eslint-disable-next-line @typescript-eslint/no-explicit-any
- const saveEvaluation = (imageId:any) => {
-  if (!selectedPatient || !user) return;
-
-  const evaluation = evaluationData[imageId];
-  if (!evaluation || evaluation.decision === 'pending') {
-    toast.current?.show({
-      severity: 'error',
-      summary: 'Error',
-      detail: 'Please make a decision before saving',
-      life: 3000,
-    });
-    return;
-  }
-
-  // Map Bethesda to biopsy decision for saving
-  const mappedDecision = mapBethesdaToDecision(evaluation.decision);
-
-  const updatedPatients = patients.map((patient) => {
-    if (patient.id === selectedPatient.id) {
-      const updatedImages = patient.images.map((image) => {
-        if (image.id === imageId) {
-   const  updatedEvaluations = image.evaluations.map((imageEvaluation) => {
-  if (imageEvaluation.radiologistId === user.id) {
-    // Update existing record
-    return {
-      ...imageEvaluation,
-      decision: mappedDecision,
-      notes: evaluation.notes,
-      evaluationDate: new Date().toISOString(),
-      radiologistName: user.username, // ✅ ensure live user mapping
-    };
-  }
-  return imageEvaluation;
-});
-// Check if user's evaluation exists; if not, push a new one
-if (!image.evaluations.some((e) => e.radiologistId === user.id)) {
-  updatedEvaluations.push({
-    id: crypto.randomUUID(),
-    radiologistId: user.id,
-    radiologistName: user.username,
-    decision: mappedDecision,
-    notes: evaluation.notes,
-    evaluationDate: new Date().toISOString(),
-  });
-}
-
-          return { ...image, evaluations: updatedEvaluations };
-        }
-        return image;
-      });
-      return { ...patient, images: updatedImages };
-    }
-    return patient;
-  });
-
-  setPatients(updatedPatients);
-  savePatients(updatedPatients);
-  const updatedSelected = updatedPatients.find((p) => p.id === selectedPatient.id);
-  setSelectedPatient(updatedSelected || null);
-
-  if (updatedSelected) checkConsensus(imageId, updatedSelected);
-
-  toast.current?.show({
-    severity: 'success',
-    summary: 'Success',
-    detail: 'Evaluation saved successfully',
-    life: 3000,
-  });
-};
-
-
-  const checkConsensus = (imageId: string, patient: Patient | undefined) => {
-    if (!patient) return;
-    const image = patient.images.find((img) => img.id === imageId);
-    if (!image) return;
-    const completed = image.evaluations.filter((e) => e.decision !== 'pending');
-    if (completed.length >= 2) {
-      const biopsyRequired = completed.filter((e) => e.decision === 'biopsy_required').length;
-      if (biopsyRequired >= 2) {
-      
-        toast.current?.show({severity:'success', summary: 'Success', detail:'Consensus reached: Biopsy decision confirmed. Field Coordinator has been notified.', life: 3000});
-
-      }
-    }
-  };
-
-  const getConsensusStatus = (image: PatientImage) => {
-    const completed = image.evaluations.filter((e) => e.decision !== 'pending');
-    const biopsyRequired = completed.filter((e) => e.decision === 'biopsy_required').length;
-    if (completed.length >= 3) {
-      return biopsyRequired >= 2 ? 'Consensus: Biopsy Required' : 'Consensus: No Biopsy';
-    } else if (completed.length >= 2 && biopsyRequired >= 2) {
-      return 'Consensus: Biopsy Required';
-    }
-    return `${completed.length}/3 evaluations completed`;
-  };
-
-  const decisionOptions = [
-    { label: 'Pending', value: 'pending' },
-    { label: 'Bethesda I', value: '1' },
-    { label: 'Bethesda II', value: '2' },
-    { label: 'Bethesda III', value: '3' },
-    { label: 'Bethesda IV', value: '4' },
-    { label: 'Bethesda V - VI', value: '5' },
-   /*  { label: 'Biopsy Required', value: 'biopsy_required' },
-    { label: 'Biopsy Not Required', value: 'biopsy_not_required' }, */
-  ];
- const mapBethesdaToDecision = (value: string): DecisionType => {
+function mapBethesdaToDecision(value: string): DecisionType {
   switch (value) {
     case '4':
     case '5':
@@ -183,41 +35,111 @@ if (!image.evaluations.some((e) => e.radiologistId === user.id)) {
     default:
       return 'pending';
   }
-};
+}
 
-  const getDecisionTag = (decision: string) => {
-    switch (decision) {
-      case 'biopsy_required':
-        return <Tag className=" warning-tag p-tag p-component p-tag-warning" severity="danger" value="Biopsy Required" />;
-      case 'biopsy_not_required':
-        return <Tag  className=' success-tag' severity="success" value="No Biopsy Needed" />;
-      default:
-        return <Tag className=' info-tag' value="Pending" />;
+function getDecisionTag(decision: string) {
+  switch (decision) {
+    case 'biopsy_required':
+      return <Tag className="warning-tag p-tag p-component p-tag-warning" severity="danger" value="Biopsy Required" />;
+    case 'biopsy_not_required':
+      return <Tag className="success-tag" severity="success" value="No Biopsy Needed" />;
+    default:
+      return <Tag className="info-tag" value="Pending" />;
+  }
+}
+
+export default function PathologyResults() {
+  const { user } = useAuth(); // user.role: 'radiologist' or 'patolog_coordinator'
+  const [searchId, setSearchId] = useState('');
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [evaluation, setEvaluation] = useState<{ decision: string; notes: string }>({ decision: 'pending', notes: '' });
+  const toast = useRef<Toast>(null);
+
+  // Data migration to patient-level evaluations on load
+  useEffect(() => {
+    const fetchedPatients = getPatients();
+    // migrate: radiologistEvaluations (one per radiologist)
+    const processedPatients = fetchedPatients.map(p => {
+      // Deduplicate across images by radiologistId (take most recent, or latest decision not 'pending')
+      const evalMap = new Map<string, RadiologistEvaluation>();
+      p.images?.forEach(img => {
+        img.evaluations.forEach(ev => {
+          const existing = evalMap.get(ev.radiologistId);
+          // prefer not pending, or latest by date if both are not pending (simplified)
+          if (!existing || (existing.decision === 'pending' && ev.decision !== 'pending')) {
+            evalMap.set(ev.radiologistId, { ...ev, evaluationDate: ev.evaluationDate || img.uploadDate });
+          }
+        });
+      });
+      return {
+        ...p,
+        radiologistEvaluations: Array.from(evalMap.values())
+      };
+    });
+    setPatients(processedPatients);
+  }, []);
+
+  const handleSearch = () => {
+    if (!searchId.trim()) {
+      toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Please enter a Volunteer ID', life: 3000 });
+      return;
+    }
+    const patient = patients.find((p) => p.volunteerId.toLowerCase().includes(searchId.toLowerCase()));
+    if (patient) {
+      setSelectedPatient(patient);
+      setEvaluation(patient.evaluation || { decision: 'pending', notes: '' });
+    } else {
+      setSelectedPatient(null);
+      toast.current?.show({ severity: 'error', summary: 'Error', detail: 'Patient not found', life: 3000 });
     }
   };
 
+  const handleEvaluationChange = (field: 'decision' | 'notes', value: string) => {
+    setEvaluation((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Only coordinator can save evaluation
+  const saveEvaluation = () => {
+    if (!selectedPatient || !user || user.role !== 'patolog_coordinator') return;
+    if (evaluation.decision === 'pending') {
+      toast.current?.show({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Please make a decision before saving',
+        life: 3000,
+      });
+      return;
+    }
+    const mappedDecision = mapBethesdaToDecision(evaluation.decision);
+    // Attach evaluation to the patient
+    const updatedPatients = patients.map((p) =>
+      p.id === selectedPatient.id
+        ? {
+            ...p,
+            evaluation: {
+              decision: mappedDecision,
+              notes: evaluation.notes,
+              evaluator: user.username,
+              date: new Date().toISOString(),
+            },
+          }
+        : p
+    );
+    setPatients(updatedPatients);
+    savePatients(updatedPatients);
+    setSelectedPatient(updatedPatients.find((p) => p.id === selectedPatient.id) || null);
+    toast.current?.show({
+      severity: 'success',
+      summary: 'Success',
+      detail: 'Evaluation saved successfully',
+      life: 3000,
+    });
+  };
+
   return (
-    <div className="min-h-screen ">
-     <Toast ref={toast} />
-
-      {/* Header */}
-  {/*     <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
-            <Button
-              type="button"
-              icon="pi pi-arrow-left"
-              label="Back to Dashboard"
-              className="p-button-text mr-4 flex items-center gap-2"
-              onClick={() => navigate('/dashboard')}
-            />
-            <span className="pi pi-user-md text-blue-600 mr-3"></span>
-            <h1 className="text-xl font-semibold text-gray-900">Image Evaluation</h1>
-          </div>
-        </div>
-      </header> */}
-
-      {/* Main Content */}
+    <div className="min-h-screen">
+      <Toast ref={toast} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Search Section */}
         <Card className="mb-6">
@@ -227,9 +149,7 @@ if (!image.evaluations.some((e) => e.radiologistId === user.id)) {
           <div className="p-4">
             <div className="flex flex-col md:flex-row md:items-end md:space-x-4 space-y-4 md:space-y-0">
               <div className="flex-1">
-                <label htmlFor="search" className="block text-sm font-medium mb-1">
-                  Volunteer ID
-                </label>
+                <label htmlFor="search" className="block text-sm font-medium mb-1">Volunteer ID</label>
                 <InputText
                   id="search"
                   value={searchId}
@@ -244,14 +164,11 @@ if (!image.evaluations.some((e) => e.radiologistId === user.id)) {
                 icon="pi pi-search"
                 label="Search"
                 onClick={handleSearch}
-                //className="mt-2 md:mt-0"
                 className="mt-2 md:mt-0 px-6 py-2 rounded-md p-button-secondary"
               />
             </div>
           </div>
         </Card>
-   {/*      <MedicalCriteriaForm/> */}
-
         {/* Patient Information */}
         {selectedPatient && (
           <Card className="mb-6">
@@ -288,100 +205,91 @@ if (!image.evaluations.some((e) => e.radiologistId === user.id)) {
             </div>
           </Card>
         )}
-
-        {/* Images Evaluation */}
+        {/* Images (side by side, up to 3) and Evaluation */}
         {selectedPatient && (
-          <div className="space-y-6">
-            {selectedPatient.images.map((image) => (
-              <Card key={image.id}>
-                <div className="p-4 border-b flex justify-between items-center">
-                  <div className="flex items-center">
-                    <span className="pi pi-image text-gray-500 mr-2"></span>
-                    <span className="text-lg font-semibold">{image.imageNumber}</span>
-                  </div>
-                  <Tag severity="info" value={getConsensusStatus(image)} className="text-sm" />
+          <>
+            {/* Display images side-by-side */}
+            <div className="flex gap-4 mb-6">
+              {selectedPatient.images.slice(0, 3).map((img) => (
+                <div key={img.id} className="w-[30%] border rounded-lg p-2 flex flex-col items-center">
+                  <span className="pi pi-image text-6xl text-gray-400 mb-2"></span>
+                  <p className="text-gray-500">USG Image: {img.imageNumber}</p>
+                  <p className="text-xs text-gray-400 mb-2">Uploaded: {new Date(img.uploadDate).toLocaleString()}</p>
                 </div>
+              ))}
+            </div>
+            {/* Evaluation section */}
+            <Card className="mb-6">
+              <div className="p-4 border-b">
+                <span className="text-lg font-semibold">{user?.role !== 'patolog_coordinator' ? 'Pathology Evaluation ': 'Your Evaluation'}</span>
+                {selectedPatient.evaluation?.decision && (
+                  <span className="ml-4">{getDecisionTag(selectedPatient.evaluation.decision)}</span>
+                )}
+              </div>
+              <div className="p-4">
+                <div>
+                  <label className="block text-sm mb-2">
+                    {user?.role !== 'patolog_coordinator' ? 'Decision Made by Pathology ': 'Your Decision'}</label>
+                  <Dropdown
+                    value={evaluation.decision}
+                    onChange={(e) => handleEvaluationChange('decision', e.value)}
+                    options={decisionOptions}
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Select decision"
+                    className="w-full"
+                    disabled={user?.role !== 'patolog_coordinator' || selectedPatient.isLocked}
+                  />
+                </div>
+                <div className="mt-4">
+                  <label className="block text-sm mb-2">
+                     {user?.role !== 'patolog_coordinator' ? 'Notes Made by Pathology ': 'Your Notes'}</label>
+                  <InputTextarea
+                    value={evaluation.notes}
+                    onChange={(e) => handleEvaluationChange('notes', e.target.value)}
+                    rows={3}
+                    className="w-full"
+                    disabled={user?.role !== 'patolog_coordinator' || selectedPatient.isLocked}
+                  />
+                </div>
+                {user?.role === 'patolog_coordinator' && (
+                  <Button
+                    label="Save Evaluation"
+                    onClick={saveEvaluation}
+                    className="mt-4"
+                    disabled={selectedPatient.isLocked || evaluation.decision === 'pending'}
+                  />
+                )}
+              </div>
+            </Card>
+            {/* All Radiologist Evaluations - only for coordinator */}
+            {user?.role === 'patolog_coordinator' && (
+              <Card>
                 <div className="p-4">
-                  {/* Image placeholder */}
-                  <div className="mb-6 bg-gray-100 rounded-lg p-8 text-center">
-                    <span className="pi pi-image text-6xl text-gray-400 mb-2 block"></span>
-                    <p className="text-gray-500">USG Image: {image.imageNumber}</p>
-                    <p className="text-sm text-gray-400">
-                      Uploaded: {new Date(image.uploadDate).toLocaleString()}
-                    </p>
-                  </div>
-  {/* Current User's Evaluation */}
-                  {user && (
-                    <div className="border-t py-6">
-                      <h4 className="font-medium mb-3">Your Evaluation</h4>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-1">Decision</label>
-                          <Dropdown
-                            value={evaluationData[image.id]?.decision || 'pending'}
-                            onChange={(e) => handleEvaluationChange(image.id, 'decision', e.value)}
-                            options={decisionOptions}
-                            optionLabel="label"
-                            optionValue="value"
-                            placeholder="Select a decision"
-                            className="w-full"
-                            disabled={selectedPatient.isLocked}
-                          />
+                  <h4 className="font-medium mb-3">All Radiologist Evaluations</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {selectedPatient.radiologistEvaluations?.map((evaluation) => (
+                      <div key={evaluation.id} className="p-3 border rounded-lg">
+                        <div className="flex justify-between items-center mb-2">
+                          <span>{evaluation.radiologistName}</span>
+                          {getDecisionTag(evaluation.decision)}
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-1">Notes</label>
-                          <InputTextarea
-                            value={evaluationData[image.id]?.notes || ''}
-                            onChange={(e) => handleEvaluationChange(image.id, 'notes', e.target.value)}
-                            rows={3}
-                            placeholder="Add your evaluation notes..."
-                            className="w-full"
-                            disabled={selectedPatient.isLocked}
-                          />
-                        </div>
-                        <Button
-                          type="button"
-                          label="Save Evaluation"
-                          onClick={() => saveEvaluation(image.id)}
-                          disabled={
-                            selectedPatient.isLocked ||
-                            evaluationData[image.id]?.decision === 'pending'
-                          }
-                           className="mt-2 md:mt-0 px-6 py-2 rounded-md p-button-secondary"
-                        />
+                        {evaluation.evaluationDate && (
+                          <p className="text-xs text-gray-500 mb-2">
+                            {new Date(evaluation.evaluationDate).toLocaleString()}
+                          </p>
+                        )}
+                        {evaluation.notes && (
+                          <p className="text-sm text-gray-600">{evaluation.notes}</p>
+                        )}
                       </div>
-                    </div>
-                  )}
-                  {/* All Radiologist Evaluations */}
-                  <div className="mb-6">
-                    <h4 className="font-medium mb-3">All Radiologist Evaluations</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {image.evaluations.map((evaluation) => (
-                        <div key={evaluation.id} className="p-3 border rounded-lg">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="font-medium">{evaluation.radiologistName}</span>
-                            {getDecisionTag(evaluation.decision)}
-                          </div>
-                          {evaluation.evaluationDate && (
-                            <p className="text-xs text-gray-500 mb-2">
-                              {new Date(evaluation.evaluationDate).toLocaleString()}
-                            </p>
-                          )}
-                          {evaluation.notes && (
-                            <p className="text-sm text-gray-600">{evaluation.notes}</p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                    ))}
                   </div>
-
-                
                 </div>
               </Card>
-            ))}
-          </div>
+            )}
+          </>
         )}
-
         {!selectedPatient && (
           <Card>
             <div className="p-4 text-center">

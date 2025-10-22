@@ -1,6 +1,6 @@
 import type { UserRecord } from "../types";
 
-export interface Patient {
+/* export interface Patient {
   id: string;
   volunteerId: string;
   firstVisitDate: string;
@@ -9,15 +9,9 @@ export interface Patient {
   gender: 'male' | 'female';
   images: PatientImage[];
   isLocked: boolean;
-}
+} */
 
-export interface PatientImage {
-  id: string;
-  imageNumber: string;
-  uploadDate: string;
-  uploadedBy: string;
-  evaluations: ImageEvaluation[];
-}
+
 
 export interface ImageEvaluation {
   id: string;
@@ -27,6 +21,48 @@ export interface ImageEvaluation {
   evaluationDate?: string;
   notes?: string;
 }
+
+
+
+
+
+export type RadiologistEvaluation = {
+  id: string;
+  radiologistId: string;
+  radiologistName: string;
+  decision: string;
+  evaluationDate?: string;
+  notes: string;
+};
+
+export type PatientEvaluation = {
+  decision: string;
+  notes: string;
+  evaluator: string;
+  date: string;
+};
+
+export type PatientImage = {
+  id: string;
+  imageNumber: string;
+  uploadDate: string;
+  uploadedBy: string;
+  // if you keep legacy, ignore these after migration:
+  evaluations: RadiologistEvaluation[];
+};
+
+export type Patient = {
+  id: string;
+  volunteerId: string;
+  firstVisitDate: string;
+  secondVisitDate?: string;
+  age: number;
+  gender: string;
+  isLocked: boolean;
+  images: PatientImage[];
+  evaluation?: PatientEvaluation; // one pathology eval
+  radiologistEvaluations?: RadiologistEvaluation[]; // deduped, one per radiologist
+};
 
 // Mock data
 export const mockPatients: Patient[] = [
@@ -99,7 +135,32 @@ export const mockPatients: Patient[] = [
           }
         ]
       }
-    ]
+    ],
+     evaluation: {
+    decision: "biopsy_required",
+    notes: "Some notes...",
+    evaluator: "Dr. Coordinator",
+    date: "2024-01-17T17:00:00Z"
+  },
+  radiologistEvaluations: [
+    {
+      id: "2",
+      radiologistId: "3",
+      radiologistName: "Dr. Johnson",
+      decision: "Normal",
+      evaluationDate: "...",
+      notes: "..."
+    },
+    {
+      id: "3",
+      radiologistId: "4",
+      radiologistName: "Dr. Smith",
+      decision: "Piopsy Required",
+      evaluationDate: "...",
+      notes: "..."
+    }
+    // Each radiologist, once
+  ],
   },
   {
     id: '2',
@@ -141,7 +202,26 @@ export const mockPatients: Patient[] = [
           }
         ]
       }
-    ]
+    ],
+    radiologistEvaluations: [
+    {
+      id: "2",
+      radiologistId: "3",
+      radiologistName: "Dr. Johnson",
+      decision: "Normal",
+      evaluationDate: "...",
+      notes: "..."
+    },
+    {
+      id: "3",
+      radiologistId: "4",
+      radiologistName: "Dr. Smith",
+      decision: "Piopsy Required",
+      evaluationDate: "...",
+      notes: "..."
+    }
+    // Each radiologist, once
+  ],
   }
 ];
 
