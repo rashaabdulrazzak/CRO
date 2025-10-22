@@ -94,3 +94,17 @@ export type ExclusionForm = {
   diffuzParenkimalOlgular: boolean | null;
   birNoduluTespitEdilemeyenOlgular: boolean | null;
 };
+export type BethesdaLevel = "" | "I" | "II" | "III" | "IV" | "V" | "VI";
+
+export interface AssessmentData {
+  composition: string;
+  echogenicity: string;
+  shape: string;
+  margin: string;
+  echogenicFocii: string;
+  tiradsScore: string;
+  tiradsPoint: string;
+  biopsyPathologyExpectation: {
+    bethesda:BethesdaLevel;
+  };
+}

@@ -5,24 +5,7 @@ import { InputText } from "primereact/inputtext";
 import { Button } from "primereact/button";
 import { Checkbox } from "primereact/checkbox";
 import { Toast } from "primereact/toast";
-
-interface AssessmentData {
-  composition: string;
-  echogenicity: string;
-  shape: string;
-  margin: string;
-  echogenicFocii: string;
-  tiradsScore: string;
-  tiradsPoint: string;
-  biopsyNeedEvaluation: {
-    fnaNeeded: boolean;
-    normal: boolean;
-  };
-  biopsyPathologyExpectation: {
-    malign: boolean;
-    benign: boolean;
-  };
-}
+import type { AssessmentData, BethesdaLevel } from "../types";
 
 export default function PatientImageAssessment() {
   const { userId } = useParams();
@@ -40,8 +23,7 @@ export default function PatientImageAssessment() {
     echogenicFocii: "",
     tiradsScore: "",
     tiradsPoint: "",
-    biopsyNeedEvaluation: { fnaNeeded: false, normal: false },
-    biopsyPathologyExpectation: { malign: false, benign: false }
+    biopsyPathologyExpectation: { bethesda: "" },
   });
 
   const toast = useRef<Toast>(null);
@@ -61,13 +43,8 @@ export default function PatientImageAssessment() {
     echogenicFocii: "Present",
     tiradsScore: "TR4",
     tiradsPoint: "4",
-    biopsyNeedEvaluation: {
-      fnaNeeded: false,
-      normal: false,
-    },
     biopsyPathologyExpectation: {
-      malign: false,
-      benign: false,
+      bethesda: "V",
     },
   };
 
@@ -75,21 +52,6 @@ export default function PatientImageAssessment() {
     setAssessmentData((prev) => ({
       ...prev,
       [field]: value,
-    }));
-  };
-
-  const handleCheckboxChange = (
-    category: string,
-    field: string,
-    checked: boolean
-  ) => {
-    setAssessmentData((prev) => ({
-      ...prev,
-      [category]: {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ...(prev[category as keyof typeof prev] as any),
-        [field]: checked,
-      },
     }));
   };
 
@@ -165,8 +127,6 @@ export default function PatientImageAssessment() {
       });
 
       console.log("Assessment saved:", result);
-
-
     } catch (error) {
       console.error("Error saving assessment:", error);
       toast.current?.show({
@@ -188,7 +148,7 @@ export default function PatientImageAssessment() {
           Image Assessment Module
         </h1>
         {/* Your Assessment UI (Panel, fields, buttons) exactly as in your dialog */}
-     {/* Input Section */}
+        {/* Input Section */}
         <Panel className="panel-border p-0">
           <div className="border border-gray-300">
             <div className="grid grid-cols-2 border-b border-gray-300">
@@ -228,7 +188,7 @@ export default function PatientImageAssessment() {
             </div>
           </div>
         </Panel>
-          {showResults && (
+        {showResults && (
           <div className="space-y-4">
             <p className="text-lg text-gray-900">
               The results of the image assessment are as follows:
@@ -279,7 +239,7 @@ export default function PatientImageAssessment() {
                 ))}
 
                 {/* Biopsy Need Evaluation */}
-                <div className="grid grid-cols-2 border-b border-t border-gray-300">
+                {/*    <div className="grid grid-cols-2 border-b border-t border-gray-300">
                   <div className="p-4 border-r border-gray-300">
                     <label className="text-sm font-medium text-gray-700">
                       Biopsy need evaluation
@@ -322,13 +282,13 @@ export default function PatientImageAssessment() {
                       </label>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Biopsy Pathology Expectation */}
-                <div className="grid grid-cols-2">
+                {/* <div className="grid grid-cols-2">
                   <div className="p-4 border-r border-gray-300">
                     <label className="text-sm font-medium text-gray-700">
-                      Biopsy pathology expectation
+                      Biopsy pathology expectation (Bethesda)
                     </label>
                   </div>
                   <div className="p-4 flex items-center gap-6">
@@ -368,6 +328,44 @@ export default function PatientImageAssessment() {
                         Benign
                       </label>
                     </div>
+                  </div>
+                </div> */}
+                {/* Biopsy Pathology Expectation (Bethesda I–V) */}
+                <div className="grid grid-cols-2 border-t border-gray-300">
+                  <div className="p-4 border-r border-gray-300">
+                    <label className="text-sm font-medium text-gray-700">
+                      Biopsy pathology expectation (Bethesda)
+                    </label>
+                  </div>
+                  <div className="p-4 flex flex-wrap gap-4">
+                    {(["I", "II", "III", "IV", "V"] as BethesdaLevel[]).map(
+                      (level) => (
+                        <div
+                          className="flex items-center space-x-2"
+                          key={level}
+                        >
+                          <Checkbox
+                            inputId={`bethesda-${level}`}
+                            checked={
+                              assessmentData.biopsyPathologyExpectation
+                                .bethesda === level
+                            }
+                            onChange={() =>
+                              setAssessmentData((prev) => ({
+                                ...prev,
+                                biopsyPathologyExpectation: { bethesda: level },
+                              }))
+                            }
+                          />
+                          <label
+                            htmlFor={`bethesda-${level}`}
+                            className="text-sm text-gray-700"
+                          >
+                            {`Bethesda ${level}`}
+                          </label>
+                        </div>
+                      )
+                    )}
                   </div>
                 </div>
               </div>

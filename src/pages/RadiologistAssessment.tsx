@@ -12,6 +12,7 @@ import type { UserRecord } from "../types";
 import { getSeverity, getTagClass } from "../helpers/helper";
 import RadiologistAssessmentDialog from "../components/RadiologistAssessmentDialog";
 
+
 // Sample Data
 const initialUserRecord: UserRecord[] = [
   {
