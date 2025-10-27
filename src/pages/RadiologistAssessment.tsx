@@ -11,7 +11,7 @@ import { InputIcon } from "primereact/inputicon";
 import type { UserRecord } from "../types";
 import { getSeverity, getTagClass } from "../helpers/helper";
 import RadiologistAssessmentDialog from "../components/RadiologistAssessmentDialog";
-
+import { useAuth } from "../components/AuthContext";
 
 // Sample Data
 const initialUserRecord: UserRecord[] = [
@@ -80,7 +80,7 @@ const initialUserRecord: UserRecord[] = [
 export default function RadiologistAssessment() {
   const dt = useRef<DataTable<UserRecord[]>>(null); // ref to DataTable
   const recentUserRecord = initialUserRecord; // In real app, fetch this from API
-
+  const { user } = useAuth();
   const [selectedUserRecords, setSelectedUserRecords] = useState<UserRecord[]>(
     []
   );
@@ -88,7 +88,7 @@ export default function RadiologistAssessment() {
   // const [ageOrder, setAgeOrder] = useState<1 | -1>(1);
   // const [dateOrder, setDateOrder] = useState<1 | -1>(1);
   //  const [isEdit, setIsEdit] = useState(false);
-    const [globalFilter, setGlobalFilter] = useState<string>("");
+  const [globalFilter, setGlobalFilter] = useState<string>("");
 
   const [assessmentDialogVisible, setAssessmentDialogVisible] = useState(false);
   const [selectedCase, setSelectedCase] = useState<UserRecord | null>(null);
@@ -125,7 +125,7 @@ export default function RadiologistAssessment() {
   const clearFilters = () => {
     // If you use PrimeReact column filters/sorting, this resets them:
     dt.current?.reset();
-      setGlobalFilter("");
+    setGlobalFilter("");
   };
   /*   const [form, setForm] = useState<UserRecord>({
     id: 0,
@@ -211,7 +211,6 @@ export default function RadiologistAssessment() {
     );
   };
 
- 
   return (
     <div>
       <div className="flex items-center justify-between mt-1.5 mb-4">
@@ -219,25 +218,28 @@ export default function RadiologistAssessment() {
         <h2 className="text-2xl font-bold">Radiologist Assessment</h2>
         {/* <Button label="Add New Case" className="add-btn" icon="pi pi-plus" onClick={openNew} />
          */}{" "}
-         {/* Search / Filter row (small controls + Clear) */}
-           <div className="flex flex-col md:flex-row gap-3 lg:items-end lg:justify-end justify-center items-initial mb-4">
-        <IconField iconPosition="left">
-          <InputIcon className="pi pi-search" />
-          <InputText type="search" placeholder="Search..."  value={globalFilter} onInput={(e) => setGlobalFilter((e.target as HTMLInputElement).value)} />
+        {/* Search / Filter row (small controls + Clear) */}
+        <div className="flex flex-col md:flex-row gap-3 lg:items-end lg:justify-end justify-center items-initial mb-4">
+          <IconField iconPosition="left">
+            <InputIcon className="pi pi-search" />
+            <InputText
+              type="search"
+              placeholder="Search..."
+              value={globalFilter}
+              onInput={(e) =>
+                setGlobalFilter((e.target as HTMLInputElement).value)
+              }
+            />
+          </IconField>
 
-        </IconField>
-     
-        <Button
-          label="Clear"
-          icon="pi pi-filter-slash"
-          className="p-button-secondary "
-          onClick={clearFilters}
-        />
+          <Button
+            label="Clear"
+            icon="pi pi-filter-slash"
+            className="p-button-secondary "
+            onClick={clearFilters}
+          />
+        </div>
       </div>
-      </div>
-     
-      
-   
 
       <DataTable
         value={recentUserRecord}
@@ -320,25 +322,27 @@ export default function RadiologistAssessment() {
           style={{ minWidth: "8rem" }}
           body={statusBodyTemplate}
         />
-
-      <Column
-          header="Actions"
-          body={(rowData) => (
-            <Button
-              disabled={rowData.status === "Completed"}
-              label="Assess"
-              text
-              className="p-button-sm"
-              onClick={() => openAssessment(rowData)}
-            />
-          )}
-          style={{ minWidth: "8rem" }}
-        />
+        {user?.role === "biostatistician" ? null : (
+          <Column
+            header="Actions"
+            body={(rowData) => (
+              <Button
+                disabled={
+                  rowData.status === "Completed" ||
+                  user?.role === "biostatistician"
+                }
+                label="Assess"
+                text
+                className="p-button-sm"
+                onClick={() => openAssessment(rowData)}
+              />
+            )}
+            style={{ minWidth: "8rem" }}
+          />
+        )}
       </DataTable>
 
-    
-      
-       <RadiologistAssessmentDialog
+      <RadiologistAssessmentDialog
         visible={assessmentDialogVisible}
         onHide={() => {
           setAssessmentDialogVisible(false);

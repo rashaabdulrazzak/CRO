@@ -151,12 +151,17 @@ export default function PredictData() {
     <div>
       <div className="flex items-center justify-between mt-1.5 mb-4">
         <h2 className="text-2xl font-bold">Trial Cases</h2>
-        <Button
+        {
+          user?.role === 'field_coordinator' && (
+ <Button
           label="Add New Trial Case"
           className="add-btn"
           icon="pi pi-plus"
           onClick={openNew}
         />
+          )
+        }
+       
       </div>
 
       {/* Search / Filter row */}

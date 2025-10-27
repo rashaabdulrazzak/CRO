@@ -6,6 +6,7 @@ import { Button } from "primereact/button";
 import { Checkbox } from "primereact/checkbox";
 import { Toast } from "primereact/toast";
 import type { AssessmentData, BethesdaLevel } from "../types";
+import { useAuth } from "../components/AuthContext";
 
 export default function PatientImageAssessment() {
   const { userId } = useParams();
@@ -13,7 +14,7 @@ export default function PatientImageAssessment() {
   const [isLoading, setIsLoading] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
+  const { user } = useAuth();
   // The rest of your assessmentData setup
   const [assessmentData, setAssessmentData] = useState<AssessmentData>({
     composition: "",
@@ -377,9 +378,10 @@ export default function PatientImageAssessment() {
                 label={isSaving ? "Saving..." : "Complete Assessment"}
                 icon="pi pi-save"
                 onClick={handleSaveAssessment}
-                disabled={isSaving}
+                disabled={isSaving || user?.role === 'biostatistician'}
                 severity="success"
                 className="px-6 py-2 rounded-md p-button-secondary"
+                
               />
             </div>
           </div>
