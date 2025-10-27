@@ -125,6 +125,8 @@ interface AddNewPredictDialogProps {
     | "radiologist"
     | "monitor"
     | "patolog_coordinator"
+    | "casual_radiologist"
+    | "admin"
     | "biostatistician";
 }
 
