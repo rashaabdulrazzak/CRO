@@ -5,6 +5,7 @@ export const roleOptions = [
   { label: "Radiologist", value: "Radiologist" },
   { label: "Patolog coordinator", value: "Patolog coordinator" },
   { label: "Admin", value: "Admin" },
+  { label: "Casual Radiologist ", value: "Casual Radiologist" },
 ];
 export type UserRecord = {
   id: string | number;

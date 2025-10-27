@@ -20,7 +20,7 @@ export const menuConfig: MenuItem[] = [
   {
     label: 'Radiologist Assessment',
     path: '/radiologist-assessment',
-    roles: ['radiologist','monitor','biostatistician'],
+    roles: ['radiologist','monitor','biostatistician','casual_radiologist'],
     icon: 'pi pi-user-edit',
     description: 'Review radiologist assessments'
   },
@@ -34,7 +34,7 @@ export const menuConfig: MenuItem[] = [
   {
     label: 'Pathology of Cases',
     path: '/pathology-results',
-    roles: [ 'radiologist', 'monitor','patolog_coordinator','biostatistician'],
+    roles: [ 'radiologist', 'monitor','patolog_coordinator','biostatistician', 'casual_radiologist'],
     icon: 'pi pi-file',
     description: 'View pathology results and reports'
   },

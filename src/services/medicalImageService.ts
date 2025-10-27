@@ -14,7 +14,7 @@ export const medicalImageService = {
   // Fetch images by patient/case ID
   async fetchImagesByCase(caseId: number | null, patientId: number | null): Promise<MedicalImage[]> {
     try {
-      // Replace with your actual API endpoint
+      // Replace with actual API endpoint
       const response = await fetch(`/api/medical-images?caseId=${caseId}&patientId=${patientId}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`,

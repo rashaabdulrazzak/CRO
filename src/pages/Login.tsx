@@ -24,6 +24,7 @@ const Login = () => {
   { id: '5', username: 'monitor1', password: 'Pass123!', email:"monitor@test.com", role: 'monitor' },
   { id: '6', username: 'Biostatistician', password: 'Pass123!', email:"biostatistician@test.com", role: 'biostatistician' },
   { id: '7', username: 'patologcoordinator', password: 'Pass123!', email:"patologcoordinator@test.com", role: 'patolog_coordinator' },
+  { id: '8', username: 'radiologist casual', password: 'Pass123!', email:"radiologistcasual@test.com", role: 'casual_radiologist' },
 ];
   const loginform = useFormik<LoginDTO>({
     initialValues: new LoginDTO(),
