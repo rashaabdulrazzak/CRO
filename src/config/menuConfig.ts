@@ -20,7 +20,7 @@ export const menuConfig: MenuItem[] = [
   {
     label: 'Radiologist Assessment',
     path: '/radiologist-assessment',
-    roles: ['radiologist'],
+    roles: ['radiologist','monitor','biostatistician'],
     icon: 'pi pi-user-edit',
     description: 'Review radiologist assessments'
   },

@@ -338,7 +338,7 @@ export default function PatientImageAssessment() {
                     </label>
                   </div>
                   <div className="p-4 flex flex-wrap gap-4">
-                    {(["I", "II", "III", "IV", "V"] as BethesdaLevel[]).map(
+                    {(["I", "II", "III", "IV", "V","VI"] as BethesdaLevel[]).map(
                       (level) => (
                         <div
                           className="flex items-center space-x-2"

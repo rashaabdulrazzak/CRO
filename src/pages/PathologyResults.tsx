@@ -264,7 +264,7 @@ export default function PathologyResults() {
               </div>
             </Card>
             {/* All Radiologist Evaluations - coordinator and monitor */}
-            {canEdit && (
+            {canEdit || user?.role === 'biostatistician' && (
               <Card>
                 <div className="p-4">
                   <h4 className="font-medium mb-3">All Radiologist Evaluations</h4>
