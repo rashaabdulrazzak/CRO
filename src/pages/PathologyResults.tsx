@@ -101,6 +101,8 @@ export default function PathologyResults() {
 
   // Coordinator or Monitor can save evaluation
   const canEdit = user?.role === 'patolog_coordinator' || user?.role === 'monitor';
+  const canView =  user?.role === 'biostatistician' || user?.role === 'patolog_coordinator' || user?.role === 'monitor';
+ 
   const saveEvaluation = () => {
     if (!selectedPatient || !user || !canEdit) return;
     if (evaluation.decision === 'pending') {
@@ -264,7 +266,7 @@ export default function PathologyResults() {
               </div>
             </Card>
             {/* All Radiologist Evaluations - coordinator and monitor */}
-            {canEdit || user?.role === 'biostatistician' && (
+            {canView  && (
               <Card>
                 <div className="p-4">
                   <h4 className="font-medium mb-3">All Radiologist Evaluations</h4>
